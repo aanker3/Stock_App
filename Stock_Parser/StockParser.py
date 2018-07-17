@@ -18,6 +18,7 @@ def StockParse():
         page = requests.get('https://eresearch.fidelity.com/eresearch/gotoBL/fidelityTopOrders.jhtml', verify=False)
         tree = html.fromstring(page.content)
  
+        #make arrays of length 30.  "1" is just initializing them all with the string "1".  This should not stay in the array.
         sTicker= ["1"] * 30
         sPrice = ["1"] * 30
         sBuy = ["1"] * 30
@@ -25,13 +26,13 @@ def StockParse():
         sBuySellRatio = ["1"] * 30        
 
         for i in range (1,31):
-            TickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
-            TickerListString += str(i)
-            TickerListString += "]/td[2]/span"
+            tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
+            tickerListString += str(i)
+            tickerListString += "]/td[2]/span"
 
-            PriceListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
-            PriceListString += str(i)
-            PriceListString += "]/td[4]/span"
+            priceListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
+            priceListString += str(i)
+            priceListString += "]/td[4]/span"
 
             buyOrderListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
             buyOrderListString += str(i)
@@ -41,8 +42,8 @@ def StockParse():
             sellOrderListString += str(i)
             sellOrderListString += "]/td[7]/span"            
 
-            sTicker[i-1] = tree.xpath(TickerListString)[0].text
-            sPrice[i-1] = tree.xpath(PriceListString)[0].text
+            sTicker[i-1] = tree.xpath(tickerListString)[0].text
+            sPrice[i-1] = tree.xpath(priceListString)[0].text
             sBuy[i-1] = tree.xpath(buyOrderListString)[0].text
             sSell[i-1] = tree.xpath(sellOrderListString)[0].text
             sBuySellRatio[i-1] = round((float(sBuy[i-1]) / (float(sBuy[i-1]) + float(sSell[i-1]))),2)
@@ -52,9 +53,14 @@ def StockParse():
         print 'sSell ', sSell
         print 'sBuySellRatio ', sBuySellRatio        
         
-#        stock_Ticker = tree.xpath('//*[@id="topOrdersTable"]/tbody/tr[3]/td[2]/span')[0].text
+        #For XPARSE strings uncomment this!
+        #print 'tickerListString: ' tickerListString
+        #print 'PriceListString: ' priceListString
+        #print 'buyOrderListString: ' buyOrderListString
+        #print 'sellOrderListString: ' sellOrderListString
+
+        
 #        Stocks = tree.xpath('//*[@id="topOrdersTable"]/tbody/tr[3]/td[3]')[0].text
-#        print 'Stock Ticker: ', stock_Ticker
 #        print 'Stocks: ', Stocks
 #        print("Done")
 

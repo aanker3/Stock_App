@@ -12,7 +12,7 @@ from PIL import ImageTk, Image
 import os.path
 import subprocess
 
-
+#Goes to the fidelity website, parses out the info we want and returns a dict
 def StockParse():
         # Get Stock info
         page = requests.get('https://eresearch.fidelity.com/eresearch/gotoBL/fidelityTopOrders.jhtml', verify=False)
@@ -23,8 +23,13 @@ def StockParse():
         sPrice = ["1"] * 30
         sBuy = ["1"] * 30
         sSell = ["1"] * 30
-        sBuySellRatio = ["1"] * 30        
+        sBuySellRatio = ["1"] * 30
+        
+        #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
+        #Returns as #{{ticker1: price1, buy#1,sell#1,ratio#1},{ticker2: price2, buy#2,sell#2,ratio#2}, {3....}... }
+        stockLib = {}
 
+        #Start at i=1, end at 31.  (30 iterations)  Note: may give a syntax error in the morning b/c the website does not have 30 stocks listed
         for i in range (1,31):
             tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
             tickerListString += str(i)
@@ -42,16 +47,27 @@ def StockParse():
             sellOrderListString += str(i)
             sellOrderListString += "]/td[7]/span"            
 
+            #i-1 because python arrays start at 0.
             sTicker[i-1] = tree.xpath(tickerListString)[0].text
             sPrice[i-1] = tree.xpath(priceListString)[0].text
             sBuy[i-1] = tree.xpath(buyOrderListString)[0].text
             sSell[i-1] = tree.xpath(sellOrderListString)[0].text
+            
+            #Round to 2nd decimal space
             sBuySellRatio[i-1] = round((float(sBuy[i-1]) / (float(sBuy[i-1]) + float(sSell[i-1]))),2)
+            
+            #Add it to the stock Dicitonary
+            stockLib[sTicker[i-1]] = [sPrice[i-1], sBuy[i-1], sSell[i-1], sBuySellRatio[i-1]]
         print 'sTicker ', sTicker
         print 'sPrice ', sPrice
         print 'sBuy ', sBuy
         print 'sSell ', sSell
         print 'sBuySellRatio ', sBuySellRatio        
+        
+        print 'stockLib ', stockLib
+        
+        return stockLib
+        
         
         #For XPARSE strings uncomment this!
         #print 'tickerListString: ' tickerListString
@@ -59,7 +75,7 @@ def StockParse():
         #print 'buyOrderListString: ' buyOrderListString
         #print 'sellOrderListString: ' sellOrderListString
 
-        
+        #Line for stock company name
 #        Stocks = tree.xpath('//*[@id="topOrdersTable"]/tbody/tr[3]/td[3]')[0].text
 #        print 'Stocks: ', Stocks
 #        print("Done")
@@ -67,8 +83,14 @@ def StockParse():
 
 
 def main():
+
+    #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
+    #Returns as #{{ticker1: price1, buy#1,sell#1,ratio#1},{ticker2: price2, buy#2,sell#2,ratio#2}, {3....}... }
+    #Will need to figure out how to add yahoo functions to it as well.  Also need to figure out how to make it look nice in excel
+    stockLib = {}
+    stockLib = StockParse()
     
-    return StockParse()
+    print 'stockLib in MAIN ', stockLib
 
 
 

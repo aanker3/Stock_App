@@ -48,20 +48,25 @@ def GetYahoo_MainPage(ticker):
 def GetYahooStock_Price(ticker):
     tree = GetYahoo_MainPage(ticker)
     price = round(float((tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[1]')[0].text).replace(",","")),2)
-    print 'price : ', price
+  #  print 'price : ', price
     return price
     
 def GetYahooStock_PriceChange(ticker):
-    #note: gives data in format of -.2717 (-.01%)  must change this in order to use  Time in yahoo is not the same as time in fidelity always
+    #note: gives data in format of -.2717 (-.01%)  This funciton grabs would grab and return -.27 in this situation
     tree = GetYahoo_MainPage(ticker)
-    beta = tree.xpath('//*[@id="quote-summary"]/div[2]/table/tbody/tr[2]/td[2]/span')[0].text
-    return beta    
+    priceChange = tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[2]')[0].text
+    priceChange = round(float(priceChange.partition(' ')[0]),2)
+
+
+   
+    return priceChange   
     
 def GetYahooStock_Beta(ticker):
+
     tree = GetYahoo_MainPage(ticker)
-    StockChange = tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[2]')[0].text
-    print 'stock change = ', StockChange
-    return StockChange
+    beta = tree.xpath('//*[@id="quote-summary"]/div[2]/table/tbody/tr[2]/td[2]/span')[0].text
+    #print 'beta = ', beta
+    return beta
 
 #Goes to the fidelity website, parses out the info we want and returns a dict
 def StockParse():
@@ -105,23 +110,25 @@ def StockParse():
         #Actually get the fidelity data and put into arrays
         #i-1 because python arrays start at 0.
         sTicker[i-1] = tree.xpath(tickerListString)[0].text
-        sPriceChange[i-1] = round(float((tree.xpath(priceChangeListString)[0].text).replace(",","")),2)
+        sPriceChange[i-1] = round(float((tree.xpath(priceChangeListString)[0].text).replace(",","")),2) #note, this is from fidelity and not updated always
         sBuy[i-1] = tree.xpath(buyOrderListString)[0].text
         sSell[i-1] = tree.xpath(sellOrderListString)[0].text
         
         #Yahoo Data
         sCurPrice[i-1] = float(GetYahooStock_Price(sTicker[i-1]))
         sBeta[i-1] = GetYahooStock_Beta(sTicker[i-1])
-        sYahooPriceChange[i-1] = GetYahooStock_PriceChange(sTicker[i-1]) #Note: formatting is wrong.
+        sYahooPriceChange[i-1] = float(GetYahooStock_PriceChange(sTicker[i-1])) #Note: formatting is wrong.
         
         #calculated data
         #Round to 2nd decimal space
         sBuySellRatio[i-1] = round((float(sBuy[i-1]) / (float(sBuy[i-1]) + float(sSell[i-1]))),2)
-        sPriceChangePercent[i-1] = sPriceChange[i-1] / sCurPrice[i-1] #fidelity is not always updated.  TODO: fix
-        print sPriceChangePercent[i-1]
+        sPriceChangePercent[i-1] = round(float(sYahooPriceChange[i-1] / sCurPrice[i-1])*100,2) #fidelity is not always updated.  Using Yahoo info instead
+        
+        #print 'ticker = ', sTicker[i-1]
+        #print 'price = ', sPriceChangePercent[i-1]
         
         #Add it to the stock Dictionary
-        stockLib[sTicker[i-1]] = [sCurPrice[i-1], sPriceChange[i-1], sBuy[i-1], sSell[i-1], sBuySellRatio[i-1], sBeta[i-1]]
+        stockLib[sTicker[i-1]] = [sCurPrice[i-1], sYahooPriceChange[i-1], sPriceChangePercent[i-1], sBuy[i-1], sSell[i-1], sBuySellRatio[i-1], sBeta[i-1]]
     
     #Debug Prints
     #print 'sTicker ', sTicker
@@ -158,7 +165,7 @@ def main():
     stockLib = StockParse()
     
     
-    print 'Ticker: Price, PriceChange, buy amount, sell amount, ratio'
+    print 'Ticker: Price, PriceChange, price change %, buy amount, sell amount, ratio, beta'
     print 'stockLib in MAIN ', stockLib
 
 

@@ -45,15 +45,13 @@ def GetYahoo_MainPage(ticker):
     tree = html.fromstring(page.content)
     return tree
     
-def GetYahooStock_Price(ticker):
-    tree = GetYahoo_MainPage(ticker)
+def GetYahooStock_Price(tree):
     price = round(float((tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[1]')[0].text).replace(",","")),2)
   #  print 'price : ', price
     return price
     
-def GetYahooStock_PriceChange(ticker):
+def GetYahooStock_PriceChange(tree):
     #note: gives data in format of -.2717 (-.01%)  This funciton grabs would grab and return -.27 in this situation
-    tree = GetYahoo_MainPage(ticker)
     priceChange = tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[2]')[0].text
     priceChange = round(float(priceChange.partition(' ')[0]),2)
 
@@ -61,9 +59,7 @@ def GetYahooStock_PriceChange(ticker):
    
     return priceChange   
     
-def GetYahooStock_Beta(ticker):
-
-    tree = GetYahoo_MainPage(ticker)
+def GetYahooStock_Beta(tree):
     beta = tree.xpath('//*[@id="quote-summary"]/div[2]/table/tbody/tr[2]/td[2]/span')[0].text
     #print 'beta = ', beta
     return beta
@@ -91,6 +87,7 @@ def StockParse():
 
     #Start at i=1, end at 31.  (30 iterations)  Note: may give a syntax error in the morning b/c the website does not have 30 stocks listed
     for i in range (1,31):
+        
         tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
         tickerListString += str(i)
         tickerListString += "]/td[2]/span"
@@ -115,9 +112,11 @@ def StockParse():
         sSell[i-1] = tree.xpath(sellOrderListString)[0].text
         
         #Yahoo Data
-        sCurPrice[i-1] = float(GetYahooStock_Price(sTicker[i-1]))
-        sBeta[i-1] = GetYahooStock_Beta(sTicker[i-1])
-        sYahooPriceChange[i-1] = float(GetYahooStock_PriceChange(sTicker[i-1])) #Note: formatting is wrong.
+        treeYahoo = GetYahoo_MainPage(sTicker[i-1])
+        
+        sCurPrice[i-1] = float(GetYahooStock_Price(treeYahoo))
+        sBeta[i-1] = GetYahooStock_Beta(treeYahoo)
+        sYahooPriceChange[i-1] = float(GetYahooStock_PriceChange(treeYahoo)) #Note: formatting is wrong.
         
         #calculated data
         #Round to 2nd decimal space

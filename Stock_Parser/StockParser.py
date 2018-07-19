@@ -11,6 +11,7 @@ import Tkinter
 from PIL import ImageTk, Image
 import os.path
 import subprocess
+import xlsxwriter #pip install xlsxwriter
 
 #google and morning star are not working for some reason.  List out of range.  has to do with the [0].text.  Not sure
 
@@ -154,6 +155,19 @@ def StockParse():
 #        print("Done")
 
 
+def csvWriter(stockLib):
+    workbook = xlsxwriter.Workbook('data.xlsx')
+    worksheet = workbook.add_worksheet()
+    row=0
+    col=0
+    for key in stockLib.keys():
+        row += 1
+        worksheet.write(row, col, key)
+        for item in stockLib[key]:
+            worksheet.write(row, col + 1, item)
+            row += 1
+    workbook.close
+    
 
 def main():
 
@@ -163,6 +177,7 @@ def main():
     stockLib = {}
     stockLib = StockParse()
     
+    csvWriter(stockLib)
     
     print 'Ticker: Price, PriceChange, price change %, buy amount, sell amount, ratio, beta'
     print 'stockLib in MAIN ', stockLib

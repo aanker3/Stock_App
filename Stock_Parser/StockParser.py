@@ -18,6 +18,10 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.styles.colors import RED
 from openpyxl.styles.colors import GREEN
+from openpyxl.cell import Cell
+from openpyxl.utils import get_column_letter, column_index_from_string, coordinate_from_string
+import copy
+from openpyxl.worksheet import *
 
 #google and morning star are not working for some reason.  List out of range.  has to do with the [0].text.  Not sure
 
@@ -205,12 +209,7 @@ def WriteTab_DailyStockList_old(workbook, stockLib, curTime):
                 worksheet.write(row,col,item)
         row=row+1
 
-        
-        
-
-        
-        
-        
+      
         
         
         
@@ -244,11 +243,16 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
             col_num=col_num+1
             sheet.cell(row=row_num,column=col_num).value = item
             #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
-            if (col_num == 3 or col_num == 4 or col_num == 7):
+            if (col_num == 3 or col_num == 4):
                 if (item >= 0):
                     sheet.cell(row=row_num,column=col_num).font = green
                 else:
-                    sheet.cell(row=row_num,column=col_num).font = red            
+                    sheet.cell(row=row_num,column=col_num).font = red    
+            if (col_num == 7):
+                if (item >= .5):
+                    sheet.cell(row=row_num,column=col_num).font = green
+                else:
+                    sheet.cell(row=row_num,column=col_num).font = red                    
         row_num=row_num+1
     
 def WriteTab_CumulativeStockList(wb, stockLib, curTime):
@@ -256,7 +260,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     sheets = wb.sheetnames
     print 'sheets1: ' ,sheets
     sheet1 = wb[sheets[1]]
-    dateStr=str(curTime.month)+"_"+str(curTime.day)+"_"+str(curTime.year)     
+    dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
     
     green = Font(color=GREEN)
     red = Font(color=RED)
@@ -274,22 +278,41 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     sheet1['I1'] = "Date"         
 
     row_num=2
+    lastRow=sheet1.max_row
     for key in stockLib.keys():
-        max_row=sheet1.max_row
         col_num=1
         lastFoundMatch_Row=0
-        for row_num in range(1, max_row):
+        for row_num in range(1, sheet1.max_row):
             if key == sheet1.cell(row=row_num,column=col_num).value:
                 print 'found copy of ', key
-                lastFoundMatch_Row=row_num
+                lastFoundMatch_Row=row_num            
+            if(sheet1.cell(row=row_num,column=col_num).value == None):
+                lastRow = row_num
+                print 'lastRow = ', lastRow
+                break
         if lastFoundMatch_Row != 0:
             print 'Last match found on ', lastFoundMatch_Row
-            #sheet1.append(lastFoundMatch_Row)
-            #sheet1.insert_rows(lastFoundMatch_Row, amount=1)
-            #def insert_rows(self, row_idx, cnt, above=False, copy_style=True):
-            #insert_rows(sheet1, lastFoundMatch_Row, 1)
+            sheet1.insert_rows(lastFoundMatch_Row+1)
+            row_num=lastFoundMatch_Row+1
         else:
-            row_num=row_num+1
+            row_num=lastRow
+            print 'sheet1.maxrow +1', sheet1.max_row+1
+        sheet1.cell(row=row_num, column=col_num).value = key
+        for item in stockLib[key]:               
+            col_num=col_num+1
+            sheet1.cell(row=row_num,column=col_num).value = item
+            #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
+            if (col_num == 3 or col_num == 4):
+                if (item >= 0):
+                    sheet1.cell(row=row_num,column=col_num).font = green
+                else:
+                    sheet1.cell(row=row_num,column=col_num).font = red
+            if ( col_num == 7):
+                if (item >= .5):
+                    sheet1.cell(row=row_num,column=col_num).font = green
+                else:
+                    sheet1.cell(row=row_num,column=col_num).font = red
+        sheet1.cell(row=row_num,column=col_num+1).value = dateStr
         
     
     

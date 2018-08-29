@@ -3,7 +3,8 @@
 # Name            :  StockParser
 # Script Name     :  StockParser.py
 
-from datetime import datetime
+import datetime
+import re
 from lxml import html
 import requests
 import time
@@ -12,6 +13,11 @@ from PIL import ImageTk, Image
 import os.path
 import subprocess
 import xlsxwriter #pip install xlsxwriter
+from openpyxl import Workbook
+from openpyxl import load_workbook
+from openpyxl.styles import Font
+from openpyxl.styles.colors import RED
+from openpyxl.styles.colors import GREEN
 
 #google and morning star are not working for some reason.  List out of range.  has to do with the [0].text.  Not sure
 
@@ -87,7 +93,7 @@ def StockParse():
     stockLib = {}
 
     #Start at i=1, end at 31.  (30 iterations)  Note: may give a syntax error in the morning b/c the website does not have 30 stocks listed
-    for i in range (1,31):
+    for i in range (1,6):
         
         tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
         tickerListString += str(i)
@@ -156,21 +162,10 @@ def StockParse():
 #        print 'Stocks: ', Stocks
 #        print("Done")
 
-
-def csvWriter(stockLib):
-    #workbook = xlsxwriter.Workbook('data.xlsx')
-    #worksheet = workbook.add_worksheet()
-    #row=0
-    #col=0
-    #for key in stockLib.keys():
-    #    row += 1
-    #    worksheet.write(row, col, key)
-    #    for item in stockLib[key]:
-    #        worksheet.write(row, col + 1, item)
-    #        row += 1
-    #workbook.close
-    workbook = xlsxwriter.Workbook('demo.xlsx')
-    worksheet = workbook.add_worksheet("Additions")
+def WriteTab_DailyStockList_old(workbook, stockLib, curTime):
+    dateStr=str(curTime.month)+"_"+str(curTime.day)+"_"+str(curTime.year)     
+    date_StockList_Title=dateStr+" Stock List"
+    worksheet = workbook.add_worksheet(date_StockList_Title)
 
     green = workbook.add_format({'color': 'green'})
     red = workbook.add_format({'color': 'red'})
@@ -186,14 +181,14 @@ def csvWriter(stockLib):
     
     worksheet.write('D1', 'Stock Additions')
     
-    worksheet.write('A3', 'Ticker')
-    worksheet.write('B3', 'Price')
-    worksheet.write('C3', 'Price Change')
-    worksheet.write('D3', 'Percent Change')
-    worksheet.write('E3', 'Buy Orders')
-    worksheet.write('F3', 'Sell Orders')
-    worksheet.write('G3', 'Buy Sell Ratio')
-    worksheet.write('H3', 'Beta')
+    worksheet.write('A3', 'Ticker')             #Col 0
+    worksheet.write('B3', 'Price')              #Col 1
+    worksheet.write('C3', 'Price Change')       #Col 2
+    worksheet.write('D3', 'Percent Change')     #Col 3
+    worksheet.write('E3', 'Buy Orders')         #Col 4
+    worksheet.write('F3', 'Sell Orders')        #Col 5
+    worksheet.write('G3', 'Buy Sell Ratio')     #Col 6
+    worksheet.write('H3', 'Beta')               #Col 7
     row=3
     for key in stockLib.keys():
         col=0
@@ -209,9 +204,125 @@ def csvWriter(stockLib):
             else:
                 worksheet.write(row,col,item)
         row=row+1
+
+        
+        
+
+        
+        
+        
+        
+        
+        
+def WriteTab_DailyStockList(wb, stockLib, curTime):
+    #sheet = wb.active
+    sheets = wb.sheetnames
+    print 'sheets0 : ' ,sheets
+    sheet = wb[sheets[0]]
+    dateStr=str(curTime.month)+"_"+str(curTime.day)+"_"+str(curTime.year)     
+    date_StockList_Title=dateStr+" Stock List"
+    
+    green = Font(color=GREEN)
+    red = Font(color=RED)
+    #sheet.title = date_StockList_Title
+
+    sheet['D1'] = "Stock Additions"         
+    sheet['A3'] = "Ticker"                  #column 1
+    sheet['B3'] = "Price"                   #column 2
+    sheet['C3'] = "Price Change"            #column 3
+    sheet['D3'] = "Percent Change"          #column 4
+    sheet['E3'] = "Buy Orders"
+    sheet['F3'] = "Sell Orders"
+    sheet['G3'] = "Buy Sell Ratio"
+    sheet['H3'] = "Beta"    
+
+    row_num=4
+    for key in stockLib.keys():
+        col_num=1
+        sheet.cell(row=row_num, column=col_num).value = key
+        for item in stockLib[key]:               
+            col_num=col_num+1
+            sheet.cell(row=row_num,column=col_num).value = item
+            #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
+            if (col_num == 3 or col_num == 4 or col_num == 7):
+                if (item >= 0):
+                    sheet.cell(row=row_num,column=col_num).font = green
+                else:
+                    sheet.cell(row=row_num,column=col_num).font = red            
+        row_num=row_num+1
+    
+def WriteTab_CumulativeStockList(wb, stockLib, curTime):
+#    sheet2 = wb.get_sheet_by_name("Cumulative_Stock_List")
+    sheets = wb.sheetnames
+    print 'sheets1: ' ,sheets
+    sheet1 = wb[sheets[1]]
+    dateStr=str(curTime.month)+"_"+str(curTime.day)+"_"+str(curTime.year)     
+    
+    green = Font(color=GREEN)
+    red = Font(color=RED)
+    
+    #sheet1.title = "Cumulative_Stock_List"
+    
+    sheet1['A1'] = "Ticker"                  #column 2
+    sheet1['B1'] = "Price"                   #column 3
+    sheet1['C1'] = "Price Change"            #column 4
+    sheet1['D1'] = "Percent Change"          #column 5
+    sheet1['E1'] = "Buy Orders"
+    sheet1['F1'] = "Sell Orders"
+    sheet1['G1'] = "Buy Sell Ratio"
+    sheet1['H1'] = "Beta" 
+    sheet1['I1'] = "Date"         
+
+    row_num=2
+    for key in stockLib.keys():
+        max_row=sheet1.max_row
+        col_num=1
+        lastFoundMatch_Row=0
+        for row_num in range(1, max_row):
+            if key == sheet1.cell(row=row_num,column=col_num).value:
+                print 'found copy of ', key
+                lastFoundMatch_Row=row_num
+        if lastFoundMatch_Row != 0:
+            print 'Last match found on ', lastFoundMatch_Row
+            #sheet1.append(lastFoundMatch_Row)
+            #sheet1.insert_rows(lastFoundMatch_Row, amount=1)
+            #def insert_rows(self, row_idx, cnt, above=False, copy_style=True):
+            #insert_rows(sheet1, lastFoundMatch_Row, 1)
+        else:
+            row_num=row_num+1
         
     
-    workbook.close()
+    
+
+        
+def csvWriter(stockLib):
+    #workbook = xlsxwriter.Workbook('data.xlsx')
+    #worksheet = workbook.add_worksheet()
+    #row=0
+    #col=0
+    #for key in stockLib.keys():
+    #    row += 1
+    #    worksheet.write(row, col, key)
+    #    for item in stockLib[key]:
+    #        worksheet.write(row, col + 1, item)
+    #        row += 1
+    #workbook.close
+    curTime = datetime.datetime.now()
+    
+    
+    
+    #workbook = xlsxwriter.Workbook('demo.xlsx')
+    filepath='demo.xlsx'
+    wb=load_workbook(filepath)
+#    WriteTab_DailyStockList(workbook, stockLib, curTime)
+    WriteTab_DailyStockList(wb, stockLib, curTime)
+    
+    WriteTab_CumulativeStockList(wb, stockLib, curTime)
+    wb.save(filepath)
+    #workbook.close()
+
+    
+   
     
 def main():
 

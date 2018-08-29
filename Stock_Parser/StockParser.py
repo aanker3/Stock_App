@@ -109,14 +109,16 @@ def StockParse():
         #i-1 because python arrays start at 0.
         sTicker[i-1] = tree.xpath(tickerListString)[0].text
         sPriceChange[i-1] = round(float((tree.xpath(priceChangeListString)[0].text).replace(",","")),2) #note, this is from fidelity and not updated always
-        sBuy[i-1] = tree.xpath(buyOrderListString)[0].text
-        sSell[i-1] = tree.xpath(sellOrderListString)[0].text
+        sBuy[i-1] = float(tree.xpath(buyOrderListString)[0].text)
+        sSell[i-1] = float(tree.xpath(sellOrderListString)[0].text)
         
         #Yahoo Data
         treeYahoo = GetYahoo_MainPage(sTicker[i-1])
         
         sCurPrice[i-1] = float(GetYahooStock_Price(treeYahoo))
         sBeta[i-1] = GetYahooStock_Beta(treeYahoo)
+        if(sBeta[i-1] != "N/A"):
+            sBeta[i-1]=float(sBeta[i-1])
         sYahooPriceChange[i-1] = float(GetYahooStock_PriceChange(treeYahoo)) #Note: formatting is wrong.
         
         #calculated data
@@ -156,19 +158,61 @@ def StockParse():
 
 
 def csvWriter(stockLib):
-    workbook = xlsxwriter.Workbook('data.xlsx')
-    worksheet = workbook.add_worksheet()
-    row=0
-    col=0
-    for key in stockLib.keys():
-        row += 1
-        worksheet.write(row, col, key)
-        for item in stockLib[key]:
-            worksheet.write(row, col + 1, item)
-            row += 1
-    workbook.close
-    
+    #workbook = xlsxwriter.Workbook('data.xlsx')
+    #worksheet = workbook.add_worksheet()
+    #row=0
+    #col=0
+    #for key in stockLib.keys():
+    #    row += 1
+    #    worksheet.write(row, col, key)
+    #    for item in stockLib[key]:
+    #        worksheet.write(row, col + 1, item)
+    #        row += 1
+    #workbook.close
+    workbook = xlsxwriter.Workbook('demo.xlsx')
+    worksheet = workbook.add_worksheet("Additions")
 
+    green = workbook.add_format({'color': 'green'})
+    red = workbook.add_format({'color': 'red'})
+    
+    worksheet.set_column('A:A', 10)
+    worksheet.set_column('B:B', 10)
+    worksheet.set_column('C:C', 15)
+    worksheet.set_column('D:D', 15)
+    worksheet.set_column('E:E', 12)
+    worksheet.set_column('F:F', 10)
+    worksheet.set_column('G:G', 15)
+    worksheet.set_column('H:H', 10)
+    
+    worksheet.write('D1', 'Stock Additions')
+    
+    worksheet.write('A3', 'Ticker')
+    worksheet.write('B3', 'Price')
+    worksheet.write('C3', 'Price Change')
+    worksheet.write('D3', 'Percent Change')
+    worksheet.write('E3', 'Buy Orders')
+    worksheet.write('F3', 'Sell Orders')
+    worksheet.write('G3', 'Buy Sell Ratio')
+    worksheet.write('H3', 'Beta')
+    row=3
+    for key in stockLib.keys():
+        col=0
+        worksheet.write(row,col,key)
+        for item in stockLib[key]:               
+            col=col+1
+            #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
+            if (col == 2 or col == 3 or col == 6):
+                if (item >= 0):
+                    worksheet.write(row,col,item, green)
+                else:
+                    worksheet.write(row,col,item, red)
+            else:
+                worksheet.write(row,col,item)
+        row=row+1
+        
+    
+    workbook.close()
+    
 def main():
 
     #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.

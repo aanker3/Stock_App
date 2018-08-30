@@ -317,18 +317,14 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
                     sheet1.cell(row=row_num,column=col_num).font = red
         sheet1.cell(row=row_num,column=col_num+1).value = dateStr
         
-    
-def WriteTab_Price(wb, stockLib, curTime):
-    sheets = wb.sheetnames
-    print 'sheets2: ' ,sheets
-    sheet2 = wb[sheets[2]]
+def writeTemplate_Price_MAs(sheet2, stockLib, curTime):
+
     dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
     
     green = Font(color=GREEN)
     red = Font(color=RED) 
 
     #first input new date Also grab dates column
-    currentDate_Column
     dates_row=1
     for col_num in range (2,sheet2.max_column+5): #note 5 is an arbitrary number.  Needed incase we have NO dates and the max_column is 0
         if(sheet2.cell(row=dates_row,column=col_num).value == None):
@@ -353,7 +349,36 @@ def WriteTab_Price(wb, stockLib, curTime):
                 else:
                     print '(SKIPPING)found key: ',key
                 break
+    return currentDate_Column
+      
+    
+def WriteTabs_Price_MAs(wb, stockLib, curTime):
+#These three tabs have the same template.  Should still compare the ticker list to make sure no errors occured
+    #go by tab num
+    price=2
+    fiftyDayMA=3
+    twohundDayMA=4
+    sheets = wb.sheetnames
+    print 'sheets2: ' ,sheets
+    sheet_Price = wb[sheets[price]]
+    sheet_fiftyDay = wb[sheets[fiftyDayMA]]
+    sheet_twohundDay = wb[sheets[twohundDayMA]]
+    currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)
+    currentDate_Column_fiftyDay = writeTemplate_Price_MAs(sheet_fiftyDay, stockLib, curTime)
+    currentDate_Column_twohundDay = writeTemplate_Price_MAs(sheet_twohundDay, stockLib, curTime)
+
+    #make sure dates are the same!
+    if((currentDate_Column_price == currentDate_Column_fiftyDay) and (currentDate_Column_price == currentDate_Column_twohundDay)):
+        currentDate_column = currentDate_Column_price
+        print 'All column dates are the same.  Good! currentDate_column = ', currentDate_column
+    else:
+        print 'Column Dates are not the same, error!'
+        print 'currentDate_Column_price = ', currentDate_Column_price
+        print 'currentDate_Column_fiftyDay = ', currentDate_Column_fiftyDay
+        print 'currentDate_Column_twohundDay = ', currentDate_Column_twohundDay
         
+    
+    #make sure stock lists are the same!
     
     
  
@@ -385,8 +410,8 @@ def csvWriter(stockLib):
     
     WriteTab_CumulativeStockList(wb, stockLib, curTime)
     
-    WriteTab_Price(wb, stockLib, curTime)
-    
+    WriteTabs_Price_MAs(wb, stockLib, curTime)
+
     wb.save(filepath)
     #workbook.close()
 

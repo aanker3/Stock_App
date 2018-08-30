@@ -55,11 +55,29 @@ def GetYahoo_MainPage(ticker):
     page = requests.get(pageStr)
     tree = html.fromstring(page.content)
     return tree
+
+def GetYahoo_StatisticsPage(ticker):
+    #https://finance.yahoo.com/quote/GOOG/key-statistics?p=GOOG
+    pageStr="https://finance.yahoo.com/quote/"+ticker+"/key-statistics?p="+ticker
+    page = requests.get(pageStr)
+    tree = html.fromstring(page.content)
+    return tree    
     
 def GetYahooStock_Price(tree):
     price = round(float((tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[1]')[0].text).replace(",","")),2)
   #  print 'price : ', price
     return price
+    
+def GetYahooStock_FiftyDayMA(tree):
+    fiftyDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[6]/td[2]')[0].text).replace(",","")),2)
+    #print 'fiftyDayMA : ', fiftyDayMA
+    return fiftyDayMA    
+
+def GetYahooStock_TwoHundDayMA(tree):
+    twohundDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[7]/td[2]')[0].text).replace(",","")),2)
+    #print 'twohundDayMA : ', twohundDayMA
+    return twohundDayMA        
+  
     
 def GetYahooStock_PriceChange(tree):
     #note: gives data in format of -.2717 (-.01%)  This funciton grabs would grab and return -.27 in this situation
@@ -356,14 +374,14 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     green = Font(color=GREEN)
     red = Font(color=RED)
     
-    price=2
-    fiftyDayMA=3
-    twohundDayMA=4
+    price_ENUM=2
+    fiftyDayMA_ENUM=3
+    twohundDayMA_ENUM=4
     sheets = wb.sheetnames
     print 'sheets2: ' ,sheets
-    sheet_Price = wb[sheets[price]]
-    sheet_fiftyDay = wb[sheets[fiftyDayMA]]
-    sheet_twohundDay = wb[sheets[twohundDayMA]]
+    sheet_Price = wb[sheets[price_ENUM]]
+    sheet_fiftyDay = wb[sheets[fiftyDayMA_ENUM]]
+    sheet_twohundDay = wb[sheets[twohundDayMA_ENUM]]
     currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)
     currentDate_Column_fiftyDay = writeTemplate_Price_MAs(sheet_fiftyDay, stockLib, curTime)
     currentDate_Column_twohundDay = writeTemplate_Price_MAs(sheet_twohundDay, stockLib, curTime)
@@ -389,9 +407,13 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 break
             else:
                 #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
+                
+
                 stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
-                #Yahoo Data
-                treeYahoo = GetYahoo_MainPage(stockTicker)                       
+                #Data from yahoo SATISTICS PAGE
+                treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
+
+                #FIRST add in PRICE in form "190 (-.5%)"                
                 stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
                 stockPrice = float(GetYahooStock_Price(treeYahoo))
                 priceChangePercent = round(float(stockPriceChange / stockPrice)*100,2)
@@ -403,9 +425,16 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 else:
                     sheet_Price.cell(row=row_num,column=currentDate_column).font = red
                     
-                    
+                #Second Add in 50 Day MA
+                fiftyDayMA = float(GetYahooStock_FiftyDayMA(treeYahoo))
+                sheet_fiftyDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
                 
-                cumulative_StockLib[stockTicker] = [[stockPriceTemplate]]
+                #third Add in 200 Day MA
+                fiftyDayMA = float(GetYahooStock_TwoHundDayMA(treeYahoo))
+                sheet_twohundDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
+                               
+                #add to a dictionary.  Maybe will be usefull? 
+                cumulative_StockLib[stockTicker] = [stockPriceTemplate, fiftyDayMA, fiftyDayMA]
     #            cumulative_StockLib[sTicker[i-1]] = [sCurPrice[i-1], sYahooPriceChange[i-1], sPriceChangePercent[i-1], sBuy[i-1], sSell[i-1], sBuySellRatio[i-1], sBeta[i-1]]
         else:
             stockMatch=False
@@ -421,17 +450,6 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     
         
 def csvWriter(stockLib):
-    #workbook = xlsxwriter.Workbook('data.xlsx')
-    #worksheet = workbook.add_worksheet()
-    #row=0
-    #col=0
-    #for key in stockLib.keys():
-    #    row += 1
-    #    worksheet.write(row, col, key)
-    #    for item in stockLib[key]:
-    #        worksheet.write(row, col + 1, item)
-    #        row += 1
-    #workbook.close
     curTime = datetime.datetime.now()
     
     

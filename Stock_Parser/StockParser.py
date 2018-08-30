@@ -399,51 +399,45 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     
     stock_col=1
     stockMatch=True
-    sheet_Price_maxRow=sheet_Price.max_row
     #make sure stock lists are the same!
-    for row_num in range (2, sheet_Price_maxRow):
-        sheet_Price_maxRow=sheet_Price.max_row
-        print 'row_num= ', row_num
-        print 'sheet_Price_maxRow= ', sheet_Price_maxRow
+    row_num=2
+    while (sheet_Price.cell(row=row_num,column=stock_col).value != None):
+        #print 'row_num= ', row_num
         if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_fiftyDay.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_twohundDay.cell(row=row_num,column=stock_col).value)):
-            if(sheet_Price.cell(row=row_num,column=stock_col).value == None):
-                break
-                print 'breaking on row_num ', row_num
+            #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
+            
+
+            stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
+            #Data from yahoo SATISTICS PAGE
+            treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
+            print 'on stock : ', stockTicker
+
+            #FIRST add in PRICE in form "190 (-.5%)"                
+            stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
+            stockPrice = float(GetYahooStock_Price(treeYahoo))
+            priceChangePercent = round(float(stockPriceChange / stockPrice)*100,2)
+            stockPriceTemplate = str(stockPrice) + " (" + str(priceChangePercent) + "%)"
+            
+            sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
+            if (priceChangePercent >= 0):
+                sheet_Price.cell(row=row_num,column=currentDate_column).font = green
             else:
-                #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
+                sheet_Price.cell(row=row_num,column=currentDate_column).font = red
                 
-
-                stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
-                #Data from yahoo SATISTICS PAGE
-                treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
-                print 'on stock : ', stockTicker
-
-                #FIRST add in PRICE in form "190 (-.5%)"                
-                stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
-                stockPrice = float(GetYahooStock_Price(treeYahoo))
-                priceChangePercent = round(float(stockPriceChange / stockPrice)*100,2)
-                stockPriceTemplate = str(stockPrice) + " (" + str(priceChangePercent) + "%)"
-                
-                sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
-                if (priceChangePercent >= 0):
-                    sheet_Price.cell(row=row_num,column=currentDate_column).font = green
-                else:
-                    sheet_Price.cell(row=row_num,column=currentDate_column).font = red
-                    
-                #Second Add in 50 Day MA
-                fiftyDayMA = float(GetYahooStock_FiftyDayMA(treeYahoo))
-                sheet_fiftyDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
-                
-                #third Add in 200 Day MA
-                fiftyDayMA = float(GetYahooStock_TwoHundDayMA(treeYahoo))
-                sheet_twohundDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
-                               
-                #add to a dictionary.  Maybe will be usefull? 
-                cumulative_StockLib[stockTicker] = [stockPriceTemplate, fiftyDayMA, fiftyDayMA]
-    #            cumulative_StockLib[sTicker[i-1]] = [sCurPrice[i-1], sYahooPriceChange[i-1], sPriceChangePercent[i-1], sBuy[i-1], sSell[i-1], sBuySellRatio[i-1], sBeta[i-1]]
+            #Second Add in 50 Day MA
+            fiftyDayMA = float(GetYahooStock_FiftyDayMA(treeYahoo))
+            sheet_fiftyDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
+            
+            #third Add in 200 Day MA
+            fiftyDayMA = float(GetYahooStock_TwoHundDayMA(treeYahoo))
+            sheet_twohundDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
+                           
+            #add to a dictionary.  Maybe will be usefull? 
+            cumulative_StockLib[stockTicker] = [stockPriceTemplate, fiftyDayMA, fiftyDayMA]
         else:
             stockMatch=False
             break
+        row_num=row_num+1
     if(stockMatch == True):
         print 'stocks match, continue'
     else:

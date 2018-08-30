@@ -65,8 +65,6 @@ def GetYahooStock_PriceChange(tree):
     #note: gives data in format of -.2717 (-.01%)  This funciton grabs would grab and return -.27 in this situation
     priceChange = tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[2]')[0].text
     priceChange = round(float(priceChange.partition(' ')[0]),2)
-
-
    
     return priceChange   
     
@@ -355,6 +353,9 @@ def writeTemplate_Price_MAs(sheet2, stockLib, curTime):
 def WriteTabs_Price_MAs(wb, stockLib, curTime):
 #These three tabs have the same template.  Should still compare the ticker list to make sure no errors occured
     #go by tab num
+    green = Font(color=GREEN)
+    red = Font(color=RED)
+    
     price=2
     fiftyDayMA=3
     twohundDayMA=4
@@ -377,11 +378,44 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
         print 'currentDate_Column_fiftyDay = ', currentDate_Column_fiftyDay
         print 'currentDate_Column_twohundDay = ', currentDate_Column_twohundDay
         
+    cumulative_StockLib = {}
     
+    stock_col=1
+    stockMatch=True
     #make sure stock lists are the same!
+    for row_num in range (2, sheet_Price.max_column):
+        if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_fiftyDay.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_twohundDay.cell(row=row_num,column=stock_col).value)):
+            if(sheet_Price.cell(row=row_num,column=stock_col).value == None):
+                break
+            else:
+                #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
+                stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
+                #Yahoo Data
+                treeYahoo = GetYahoo_MainPage(stockTicker)                       
+                stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
+                stockPrice = float(GetYahooStock_Price(treeYahoo))
+                priceChangePercent = round(float(stockPriceChange / stockPrice)*100,2)
+                stockPriceTemplate = str(stockPrice) + " (" + str(priceChangePercent) + "%)"
+                
+                sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
+                if (priceChangePercent >= 0):
+                    sheet_Price.cell(row=row_num,column=currentDate_column).font = green
+                else:
+                    sheet_Price.cell(row=row_num,column=currentDate_column).font = red
+                    
+                    
+                
+                cumulative_StockLib[stockTicker] = [[stockPriceTemplate]]
+    #            cumulative_StockLib[sTicker[i-1]] = [sCurPrice[i-1], sYahooPriceChange[i-1], sPriceChangePercent[i-1], sBuy[i-1], sSell[i-1], sBuySellRatio[i-1], sBeta[i-1]]
+        else:
+            stockMatch=False
+            break
+    if(stockMatch == True):
+        print 'stocks match, continue'
+    else:
+        print 'ERROR: stocks Dont Match!'
     
-    
- 
+    print 'cumulative_StockLibrary: ',cumulative_StockLib
     #check if stock exists
 #    for key in stockLib.keys():
     

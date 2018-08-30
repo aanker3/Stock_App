@@ -283,6 +283,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
         col_num=1
         lastFoundMatch_Row=0
         for row_num in range(1, sheet1.max_row):
+            #Look for last copy of ticker
             if key == sheet1.cell(row=row_num,column=col_num).value:
                 print 'found copy of ', key
                 lastFoundMatch_Row=row_num            
@@ -290,6 +291,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
                 lastRow = row_num
                 print 'lastRow = ', lastRow
                 break
+        #lastFoundMatch_Row is 0 if it is a new stock
         if lastFoundMatch_Row != 0:
             print 'Last match found on ', lastFoundMatch_Row
             sheet1.insert_rows(lastFoundMatch_Row+1)
@@ -298,6 +300,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
             row_num=lastRow
             print 'sheet1.maxrow +1', sheet1.max_row+1
         sheet1.cell(row=row_num, column=col_num).value = key
+        #Insert the data (row_num gets updated if the stock is new or a copy)
         for item in stockLib[key]:               
             col_num=col_num+1
             sheet1.cell(row=row_num,column=col_num).value = item
@@ -315,8 +318,48 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
         sheet1.cell(row=row_num,column=col_num+1).value = dateStr
         
     
+def WriteTab_Price(wb, stockLib, curTime):
+    sheets = wb.sheetnames
+    print 'sheets2: ' ,sheets
+    sheet2 = wb[sheets[2]]
+    dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
     
+    green = Font(color=GREEN)
+    red = Font(color=RED) 
 
+    #first input new date Also grab dates column
+    currentDate_Column
+    dates_row=1
+    for col_num in range (2,sheet2.max_column+5): #note 5 is an arbitrary number.  Needed incase we have NO dates and the max_column is 0
+        if(sheet2.cell(row=dates_row,column=col_num).value == None):
+            print 'putting date on row ', dates_row
+            print 'putting date on col ', col_num
+            #Fill in current Date
+            sheet2.cell(row=dates_row, column=col_num).value = dateStr
+            currentDate_Column=col_num
+            break
+            
+    #see if our stock list has any new stocks
+    stocks_col=1
+    for key in stockLib.keys():
+        matchFound=False        
+        for row_num in range (2, sheet2.max_row+5):
+            if(key == sheet2.cell(row=row_num, column=stocks_col).value):
+                matchFound=True
+            if(sheet2.cell(row=row_num, column=stocks_col).value == None):
+                if (matchFound == False):
+                    print 'did not find key: ',key
+                    sheet2.cell(row=row_num, column=stocks_col).value = key
+                else:
+                    print '(SKIPPING)found key: ',key
+                break
+        
+    
+    
+ 
+    #check if stock exists
+#    for key in stockLib.keys():
+    
         
 def csvWriter(stockLib):
     #workbook = xlsxwriter.Workbook('data.xlsx')
@@ -341,6 +384,9 @@ def csvWriter(stockLib):
     WriteTab_DailyStockList(wb, stockLib, curTime)
     
     WriteTab_CumulativeStockList(wb, stockLib, curTime)
+    
+    WriteTab_Price(wb, stockLib, curTime)
+    
     wb.save(filepath)
     #workbook.close()
 

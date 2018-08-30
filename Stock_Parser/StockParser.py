@@ -113,7 +113,7 @@ def StockParse():
     stockLib = {}
 
     #Start at i=1, end at 31.  (30 iterations)  Note: may give a syntax error in the morning b/c the website does not have 30 stocks listed
-    for i in range (1,6):
+    for i in range (1,31):
         
         tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
         tickerListString += str(i)
@@ -167,7 +167,6 @@ def StockParse():
     #print 'sYahooPriceChange ', sYahooPriceChange
     
     #print 'stockLib ', stockLib
-    
     return stockLib
     
     
@@ -400,11 +399,16 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     
     stock_col=1
     stockMatch=True
+    sheet_Price_maxRow=sheet_Price.max_row
     #make sure stock lists are the same!
-    for row_num in range (2, sheet_Price.max_column):
+    for row_num in range (2, sheet_Price_maxRow):
+        sheet_Price_maxRow=sheet_Price.max_row
+        print 'row_num= ', row_num
+        print 'sheet_Price_maxRow= ', sheet_Price_maxRow
         if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_fiftyDay.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_twohundDay.cell(row=row_num,column=stock_col).value)):
             if(sheet_Price.cell(row=row_num,column=stock_col).value == None):
                 break
+                print 'breaking on row_num ', row_num
             else:
                 #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
                 
@@ -412,6 +416,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
                 #Data from yahoo SATISTICS PAGE
                 treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
+                print 'on stock : ', stockTicker
 
                 #FIRST add in PRICE in form "190 (-.5%)"                
                 stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
@@ -478,10 +483,21 @@ def main():
     stockLib = {}
     stockLib = StockParse()
     
+    
+    for key in stockLib.keys():
+        i=0
+        for item in stockLib[key]: 
+            if (i==6):
+                if (item > 5 and item != 'N/A'):
+                    stockLib.pop(key,None)
+                    print 'removing key: ', key
+            i=i+1
+    print 'stockLib in MAIN ', stockLib    
+    
     csvWriter(stockLib)
     
     print 'Ticker: Price, PriceChange, price change %, buy amount, sell amount, ratio, beta'
-    print 'stockLib in MAIN ', stockLib
+
 
 
 

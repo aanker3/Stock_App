@@ -113,7 +113,7 @@ def StockParse():
     stockLib = {}
 
     #Start at i=1, end at 31.  (30 iterations)  Note: may give a syntax error in the morning b/c the website does not have 30 stocks listed
-    for i in range (1,31):
+    for i in range (1,5):
         
         tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
         tickerListString += str(i)
@@ -406,7 +406,6 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
         if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_fiftyDay.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_twohundDay.cell(row=row_num,column=stock_col).value)):
             #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
             
-
             stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
             #Data from yahoo SATISTICS PAGE
             treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
@@ -428,12 +427,24 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             fiftyDayMA = float(GetYahooStock_FiftyDayMA(treeYahoo))
             sheet_fiftyDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
             
+            #Add color if over /under moving averages
+            if(fiftyDayMA > stockPrice):
+                sheet_fiftyDay.cell(row=row_num,column=currentDate_column).font = green
+            else:
+                sheet_fiftyDay.cell(row=row_num,column=currentDate_column).font = red
+                            
             #third Add in 200 Day MA
-            fiftyDayMA = float(GetYahooStock_TwoHundDayMA(treeYahoo))
-            sheet_twohundDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
+            twohundDayMA = float(GetYahooStock_TwoHundDayMA(treeYahoo))
+            sheet_twohundDay.cell(row=row_num,column=currentDate_column).value = twohundDayMA
+
+            #Add color if over /under moving averages
+            if(twohundDayMA > stockPrice):
+                sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = green
+            else:
+                sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = red            
                            
             #add to a dictionary.  Maybe will be usefull? 
-            cumulative_StockLib[stockTicker] = [stockPriceTemplate, fiftyDayMA, fiftyDayMA]
+            cumulative_StockLib[stockTicker] = [stockPriceTemplate, fiftyDayMA, twohundDayMA]
         else:
             stockMatch=False
             break
@@ -454,7 +465,7 @@ def csvWriter(stockLib):
     
     
     #workbook = xlsxwriter.Workbook('demo.xlsx')
-    filepath='demo.xlsx'
+    filepath='demo_2.xlsx'
     wb=load_workbook(filepath)
 #    WriteTab_DailyStockList(workbook, stockLib, curTime)
     WriteTab_DailyStockList(wb, stockLib, curTime)

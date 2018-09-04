@@ -49,9 +49,30 @@ from openpyxl.worksheet import *
     #priceChange = tree.xpath('//*[@id="knowledge-finance-wholepage__entity-summary"]/div/g-card-section/div/g-card-section/div[1]/span[2]/span[1]')[0].text
     #return priceChange    
     
+def GetBarChart_EarningsPage(ticker):
+    #https://finance.yahoo.com/quote/AAPL?p=AAPL&.tsrc=fin-srch-v1
+#    pageStr="https://www.barchart.com/stocks/quotes/"+ticker+"/technical-analysis"
+    pageStr="https://www.barchart.com/stocks/quotes/EA/earnings-estimates"
+    page = requests.get(pageStr)
+    tree = html.fromstring(page.content)
+    print tree
+    return tree
+    
+def GetBarChart_Dates(tree, quarter_Pos):   
+#    if(quarter_Pos==1):
+#NEED CORRECT XPATH
+#//*[@id="main-content-column"]/div/div[2]/div[2]/div[1]/div/div[2]/div/div/ng-transclude/table/tbody/tr[1]/td[2]
+    #date = tree.xpath('/html[1]/body[1]/div[2]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[1]/div[1]/ng-transclude[1]/table[1]/tbody[1]/tr[1]/td[2]')
+    #//*[@id="main-content-column"]/div/div[2]/div[2]/div[1]/div/div[2]/div/div/ng-transclude/table/thead/tr/th[2]/span[2]
+    date = tree.xpath("//div[@class='earnings-table-content bc-table-wrapper']/barchart-table-scroll/table/thead/tr/th/span/text()")
+    print 'date = ', date
+    return date
+    
 def GetYahoo_MainPage(ticker):
     #https://finance.yahoo.com/quote/AAPL?p=AAPL&.tsrc=fin-srch-v1
+    #Note: this string isnt exactly right, but it still works.   keep an eye on it
     pageStr="https://finance.yahoo.com/quote/"+ticker+"?p="+"ticker+&.tsrc=fin-srch-v1"
+    #print pageStr
     page = requests.get(pageStr)
     tree = html.fromstring(page.content)
     return tree
@@ -249,7 +270,13 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
     sheet['F3'] = "Sell Orders"
     sheet['G3'] = "Buy Sell Ratio"
     sheet['H3'] = "Beta"    
-
+    
+    #First Delete Rows (from yesterday)
+    for row in sheet['A4:H35']:
+        for cell in row:
+            cell.value = None
+            cell.font = None
+            
     row_num=4
     for key in stockLib.keys():
         col_num=1
@@ -455,10 +482,48 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
         print 'ERROR: stocks Dont Match!'
     
     print 'cumulative_StockLibrary: ',cumulative_StockLib
+    
+    return cumulative_StockLib
     #check if stock exists
 #    for key in stockLib.keys():
+
+   
+def WriteTab_Options(wb, stockLib, curTime):
+    sheets = wb.sheetnames
+    print 'sheets1: ' ,sheets
+    sheet_options = wb[sheets[5]]
     
+    #See if we already have options info on that stock, if not add it in
+    stockCol_num=1
+    for key in stockLib.keys():
+        row_num=1
+        found = 0
+        while ((sheet_options.cell(row=row_num, column=stockCol_num).value != None) and (found  == 0)):
+            if (key == sheet_options.cell(row=row_num, column=stockCol_num).value):
+                found = 1
+            else:
+                found = 0
+            row_num=row_num+20
+        if (found == 1):
+            print 'found key: ', key
+        else:
+            print 'could not find key: ', key
+            print 'row_num = ', row_num
+            newStockRow=row_num
+            #insert stock info!
+            sheet_options.cell(row=newStockRow, column=stockCol_num).value = key
+            
+            sheet_options.cell(row=newStockRow, column=stockCol_num + 1).value = 'Earnings History - Surprises'            
+            sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 1).value = 'Reported'
+            sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 1).value = 'Estimate'
+            sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 1).value = 'Difference'
+            sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 1).value = 'Surprise'
+            
+            tree = GetBarChart_EarningsPage(key)
+            GetBarChart_Dates(tree,1)
         
+            row_num=row_num+20
+    
 def csvWriter(stockLib):
     curTime = datetime.datetime.now()
     
@@ -472,7 +537,12 @@ def csvWriter(stockLib):
     
     WriteTab_CumulativeStockList(wb, stockLib, curTime)
     
-    WriteTabs_Price_MAs(wb, stockLib, curTime)
+    cumulative_StockLib = {}
+    cumulative_StockLib = WriteTabs_Price_MAs(wb, stockLib, curTime)
+    
+    
+    #NOTE: THIS SHOULD BE THE SAME AS stockLib, not cumulative_StockLib (Only for testing!)
+    WriteTab_Options(wb, cumulative_StockLib, curTime)
 
     wb.save(filepath)
     #workbook.close()
@@ -485,9 +555,12 @@ def main():
     #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
     #Returns as #{{ticker1: price1, buy#1,sell#1,ratio#1},{ticker2: price2, buy#2,sell#2,ratio#2}, {3....}... }
     #Will need to figure out how to add yahoo functions to it as well.  Also need to figure out how to make it look nice in excel
+
+    tree = GetBarChart_EarningsPage('EA')
+    GetBarChart_Dates(tree,1)
+    
     stockLib = {}
     stockLib = StockParse()
-    
     
     for key in stockLib.keys():
         i=0

@@ -51,14 +51,15 @@ from openpyxl.worksheet import *
     
 def GetBarChart_EarningsPage(ticker):
     #https://finance.yahoo.com/quote/AAPL?p=AAPL&.tsrc=fin-srch-v1
-#    pageStr="https://www.barchart.com/stocks/quotes/"+ticker+"/technical-analysis"
-    pageStr="https://www.barchart.com/stocks/quotes/EA/earnings-estimates"
+    pageStr="https://www.barchart.com/stocks/quotes/"+ticker+"/earnings-estimates"
+    print 'pageStr=',pageStr
+    #pageStr="https://www.barchart.com/stocks/quotes/EA/earnings-estimates"
     page = requests.get(pageStr)
     tree = html.fromstring(page.content)
     print tree
     return tree
     
-def GetBarChart_Dates(tree, quarter_Pos):   
+def GetBarChart_Dates(tree):   
 #    if(quarter_Pos==1):
 #NEED CORRECT XPATH
 #//*[@id="main-content-column"]/div/div[2]/div[2]/div[1]/div/div[2]/div/div/ng-transclude/table/tbody/tr[1]/td[2]
@@ -67,6 +68,11 @@ def GetBarChart_Dates(tree, quarter_Pos):
     date = tree.xpath("//div[@class='earnings-table-content bc-table-wrapper']/barchart-table-scroll/table/thead/tr/th/span/text()")
     print 'date = ', date
     return date
+    
+def GetBarChart_Table(tree):   
+    table = tree.xpath("//div[@class='earnings-table-content bc-table-wrapper']/barchart-table-scroll/table/tbody/tr/td/text()")
+    print 'table2 = ', table
+    return table    
     
 def GetYahoo_MainPage(ticker):
     #https://finance.yahoo.com/quote/AAPL?p=AAPL&.tsrc=fin-srch-v1
@@ -134,7 +140,7 @@ def StockParse():
     stockLib = {}
 
     #Start at i=1, end at 31.  (30 iterations)  Note: may give a syntax error in the morning b/c the website does not have 30 stocks listed
-    for i in range (1,5):
+    for i in range (1,31):
         
         tickerListString = "//*[@id=\"topOrdersTable\"]/tbody/tr["
         tickerListString += str(i)
@@ -503,7 +509,7 @@ def WriteTab_Options(wb, stockLib, curTime):
                 found = 1
             else:
                 found = 0
-            row_num=row_num+20
+            row_num=row_num+16
         if (found == 1):
             print 'found key: ', key
         else:
@@ -512,17 +518,99 @@ def WriteTab_Options(wb, stockLib, curTime):
             newStockRow=row_num
             #insert stock info!
             sheet_options.cell(row=newStockRow, column=stockCol_num).value = key
-            
-            sheet_options.cell(row=newStockRow, column=stockCol_num + 1).value = 'Earnings History - Surprises'            
-            sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 1).value = 'Reported'
-            sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 1).value = 'Estimate'
-            sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 1).value = 'Difference'
-            sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 1).value = 'Surprise'
-            
             tree = GetBarChart_EarningsPage(key)
-            GetBarChart_Dates(tree,1)
-        
-            row_num=row_num+20
+            earningsDates=[]
+            earningsDates = GetBarChart_Dates(tree)
+            if earningsDates: 
+                earningsData=[]
+                earningsData = GetBarChart_Table(tree)
+            
+                #First Table
+                sheet_options.cell(row=newStockRow, column=stockCol_num + 1).value = 'Earnings History - Surprises'            
+                sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 1).value = 'Reported'
+                sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 1).value = 'Estimate'
+                sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 1).value = 'Difference'
+                sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 1).value = 'Surprise'
+            
+                #Earnings Dates Tbl 1
+                print 'EARNINGDATES= ',earningsDates
+                sheet_options.cell(row=newStockRow + 1, column=stockCol_num + 2).value = earningsDates[0] + " " + earningsDates[1]
+                sheet_options.cell(row=newStockRow + 1, column=stockCol_num + 3).value = earningsDates[2] + " " + earningsDates[3]
+                sheet_options.cell(row=newStockRow + 1, column=stockCol_num + 4).value = earningsDates[4] + " " + earningsDates[5]
+                sheet_options.cell(row=newStockRow + 1, column=stockCol_num + 5).value = earningsDates[6] + " " + earningsDates[7]
+                
+                #Data Tbl 1
+                sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 2).value = earningsData[2]
+                sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 3).value = earningsData[3]
+                sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 4).value = earningsData[4]
+                sheet_options.cell(row=newStockRow + 2, column=stockCol_num + 5).value = earningsData[5]
+                
+                sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 2).value = earningsData[8]
+                sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 3).value = earningsData[9]
+                sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 4).value = earningsData[10]
+                sheet_options.cell(row=newStockRow + 3, column=stockCol_num + 5).value = earningsData[11]
+                
+                sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 2).value = earningsData[14]
+                sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 3).value = earningsData[15]
+                sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 4).value = earningsData[16]
+                sheet_options.cell(row=newStockRow + 4, column=stockCol_num + 5).value = earningsData[17]  
+
+                sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 2).value = earningsData[20]
+                sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 3).value = earningsData[21]
+                sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 4).value = earningsData[22]
+                sheet_options.cell(row=newStockRow + 5, column=stockCol_num + 5).value = earningsData[23]                
+                
+                #Second Table
+                sheet_options.cell(row=newStockRow + 7, column=stockCol_num + 1).value = 'Earnings Estimates'            
+                sheet_options.cell(row=newStockRow + 9, column=stockCol_num + 1).value = 'Average Estimate'
+                sheet_options.cell(row=newStockRow + 10, column=stockCol_num + 1).value = 'Number of Estimates'
+                sheet_options.cell(row=newStockRow + 11, column=stockCol_num + 1).value = 'High Estimate'
+                sheet_options.cell(row=newStockRow + 12, column=stockCol_num + 1).value = 'Low Estimate'
+                sheet_options.cell(row=newStockRow + 13, column=stockCol_num + 1).value = 'Prior Year'        
+                sheet_options.cell(row=newStockRow + 14, column=stockCol_num + 1).value = 'Growth Rate Est. YoY'        
+
+                #earnings dates tbl 2
+                sheet_options.cell(row=newStockRow + 8, column=stockCol_num + 2).value = earningsDates[8] + " " + earningsDates[9]
+                sheet_options.cell(row=newStockRow + 8, column=stockCol_num + 3).value = earningsDates[10] + " " + earningsDates[11]
+                sheet_options.cell(row=newStockRow + 8, column=stockCol_num + 4).value = earningsDates[12] + " " + earningsDates[13]
+                sheet_options.cell(row=newStockRow + 8, column=stockCol_num + 5).value = earningsDates[14] + " " + earningsDates[15]
+                
+                #data Tbl 2
+                sheet_options.cell(row=newStockRow + 9, column=stockCol_num + 2).value = earningsData[26]
+                sheet_options.cell(row=newStockRow + 9, column=stockCol_num + 3).value = earningsData[27]
+                sheet_options.cell(row=newStockRow + 9, column=stockCol_num + 4).value = earningsData[28]
+                sheet_options.cell(row=newStockRow + 9, column=stockCol_num + 5).value = earningsData[29]
+                
+                sheet_options.cell(row=newStockRow + 10, column=stockCol_num + 2).value = earningsData[32]
+                sheet_options.cell(row=newStockRow + 10, column=stockCol_num + 3).value = earningsData[33]
+                sheet_options.cell(row=newStockRow + 10, column=stockCol_num + 4).value = earningsData[34]
+                sheet_options.cell(row=newStockRow + 10, column=stockCol_num + 5).value = earningsData[35]                
+                
+                sheet_options.cell(row=newStockRow + 11, column=stockCol_num + 2).value = earningsData[38]
+                sheet_options.cell(row=newStockRow + 11, column=stockCol_num + 3).value = earningsData[39]
+                sheet_options.cell(row=newStockRow + 11, column=stockCol_num + 4).value = earningsData[40]
+                sheet_options.cell(row=newStockRow + 11, column=stockCol_num + 5).value = earningsData[41]               
+
+                sheet_options.cell(row=newStockRow + 12, column=stockCol_num + 2).value = earningsData[44]
+                sheet_options.cell(row=newStockRow + 12, column=stockCol_num + 3).value = earningsData[45]
+                sheet_options.cell(row=newStockRow + 12, column=stockCol_num + 4).value = earningsData[46]
+                sheet_options.cell(row=newStockRow + 12, column=stockCol_num + 5).value = earningsData[47]     
+
+                sheet_options.cell(row=newStockRow + 13, column=stockCol_num + 2).value = earningsData[50]
+                sheet_options.cell(row=newStockRow + 13, column=stockCol_num + 3).value = earningsData[51]
+                sheet_options.cell(row=newStockRow + 13, column=stockCol_num + 4).value = earningsData[52]
+                sheet_options.cell(row=newStockRow + 13, column=stockCol_num + 5).value = earningsData[53]        
+
+                sheet_options.cell(row=newStockRow + 14, column=stockCol_num + 2).value = earningsData[57]
+                sheet_options.cell(row=newStockRow + 14, column=stockCol_num + 3).value = earningsData[58]
+                sheet_options.cell(row=newStockRow + 14, column=stockCol_num + 4).value = earningsData[59]
+                sheet_options.cell(row=newStockRow + 14, column=stockCol_num + 5).value = earningsData[60]                     
+            else:
+                print 'stock not on list: ', key
+                sheet_options.cell(row=newStockRow, column=stockCol_num + 1).value = 'STOCK NOT ON LIST!'            
+
+            
+            row_num=row_num+16
     
 def csvWriter(stockLib):
     curTime = datetime.datetime.now()
@@ -542,7 +630,7 @@ def csvWriter(stockLib):
     
     
     #NOTE: THIS SHOULD BE THE SAME AS stockLib, not cumulative_StockLib (Only for testing!)
-    WriteTab_Options(wb, cumulative_StockLib, curTime)
+    WriteTab_Options(wb, stockLib, curTime)
 
     wb.save(filepath)
     #workbook.close()
@@ -555,15 +643,28 @@ def main():
     #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
     #Returns as #{{ticker1: price1, buy#1,sell#1,ratio#1},{ticker2: price2, buy#2,sell#2,ratio#2}, {3....}... }
     #Will need to figure out how to add yahoo functions to it as well.  Also need to figure out how to make it look nice in excel
+    #earningDates=[]
+    #tree = GetBarChart_EarningsPage('EA')
+    #EaEarnings = []
+    #EaEarnings = GetBarChart_Table(tree)
+    #for i in range (0,len(EaEarnings)):
+    #    print 'EaEarnings[i]',i, '=', EaEarnings[i]
+    #print 'earning dates= ', earningDates
 
-    tree = GetBarChart_EarningsPage('EA')
-    GetBarChart_Dates(tree,1)
+    #print 'earning dates[0] = ', earningDates[0]
+    #print 'earning dates[1] = ', earningDates[1]
+    #abc = earningDates[0] + " " + earningDates[1]
+    #print 'abc = ', abc
+
     
     stockLib = {}
     stockLib = StockParse()
     
     for key in stockLib.keys():
         i=0
+#        if key == 'ACBFF':
+#            stockLib.pop(key,None)
+#            print 'HARD-removing ACBFF'
         for item in stockLib[key]: 
             if (i==6):
                 if (item > 5 and item != 'N/A'):

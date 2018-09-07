@@ -476,8 +476,8 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             else:
                 sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = red            
                            
-            #add to a dictionary.  Maybe will be usefull? 
-            cumulative_StockLib[stockTicker] = [stockPriceTemplate, fiftyDayMA, twohundDayMA]
+            #add to a dictionary.  Maybe will be useful? 
+            cumulative_StockLib[stockTicker] = [stockPrice, stockPriceTemplate, fiftyDayMA, twohundDayMA]
         else:
             stockMatch=False
             break
@@ -611,7 +611,47 @@ def WriteTab_Options(wb, stockLib, curTime):
 
             
             row_num=row_num+16
+
+def WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime):
+    sheets = wb.sheetnames
+    #print 'sheets1: ' ,sheets
+    sheet1 = wb[sheets[1]]
+    dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
     
+    green = Font(color=GREEN)
+    red = Font(color=RED)
+    
+    col_num=1
+    row_num = 1
+    
+    #get the last column to put the totals
+    while (sheet1.cell(row=row_num,column=col_num).value != None and sheet1.cell(row=row_num,column=col_num).value != '% Change Since Inception'):
+        col_num = col_num +1
+    totals_col = col_num
+    
+    sheet1.cell(row=1,column=col_num).value = "% Change Since Inception"
+    
+    row_num = 1
+    #column=1 is the tickers
+    while (sheet1.cell(row=row_num,column=1).value != None):
+        for key in cumulative_StockLib.keys():
+            if (sheet1.cell(row=row_num,column=1).value == key):
+                i=0
+                for item in cumulative_StockLib[key]: 
+                    if (i==0):
+                        print 'current price=', item
+                        price_Change = item - sheet1.cell(row=row_num,column=2).value
+                        pctChange = round(float(100*(price_Change/sheet1.cell(row=row_num,column=2).value)),2)
+                        print 'pctChange =', pctChange
+                        sheet1.cell(row=row_num,column=totals_col).value = pctChange
+                        if (pctChange > 0):
+                            sheet1.cell(row=row_num,column=totals_col).font = green
+                        else:
+                            sheet1.cell(row=row_num,column=totals_col).font = red
+                    i=i+1
+        row_num=row_num+1
+        
+            
 def csvWriter(stockLib):
     curTime = datetime.datetime.now()
     
@@ -619,6 +659,7 @@ def csvWriter(stockLib):
     
     #workbook = xlsxwriter.Workbook('demo.xlsx')
     filepath='StockList.xlsx'
+    #filepath='demo_2.xlsx'
     wb=load_workbook(filepath)
 #    WriteTab_DailyStockList(workbook, stockLib, curTime)
     WriteTab_DailyStockList(wb, stockLib, curTime)
@@ -627,11 +668,12 @@ def csvWriter(stockLib):
     
     cumulative_StockLib = {}
     cumulative_StockLib = WriteTabs_Price_MAs(wb, stockLib, curTime)
-    
-    
+        
     #NOTE: THIS SHOULD BE THE SAME AS stockLib, not cumulative_StockLib (Only for testing!)
     WriteTab_Options(wb, stockLib, curTime)
 
+    WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime)
+    
     wb.save(filepath)
     #workbook.close()
 

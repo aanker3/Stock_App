@@ -333,7 +333,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
         for row_num in range(1, sheet1.max_row):
             #Look for last copy of ticker
             if key == sheet1.cell(row=row_num,column=col_num).value:
-                print 'found copy of ', key
+                #print 'found copy of ', key
                 lastFoundMatch_Row=row_num            
             if(sheet1.cell(row=row_num,column=col_num).value == None):
                 lastRow = row_num
@@ -639,10 +639,10 @@ def WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime):
                 i=0
                 for item in cumulative_StockLib[key]: 
                     if (i==0):
-                        print 'current price=', item
+                        #print 'current price=', item
                         price_Change = item - sheet1.cell(row=row_num,column=2).value
                         pctChange = round(float(100*(price_Change/sheet1.cell(row=row_num,column=2).value)),2)
-                        print 'pctChange =', pctChange
+                        #print 'pctChange =', pctChange
                         sheet1.cell(row=row_num,column=totals_col).value = pctChange
                         if (pctChange > 0):
                             sheet1.cell(row=row_num,column=totals_col).font = green
@@ -651,7 +651,74 @@ def WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime):
                     i=i+1
         row_num=row_num+1
         
-            
+def WriteOverallStats(wb, cumulative_StockLib, curTime):
+    sheets = wb.sheetnames
+    #print 'sheets1: ' ,sheets
+    sheet1 = wb[sheets[1]]
+    dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
+    
+    green = Font(color=GREEN)
+    red = Font(color=RED)
+    
+    col_num=1    
+    while (sheet1.cell(row=1,column=col_num).value != '% Change Since Inception'):
+        col_num = col_num +1
+    totals_col = col_num
+    
+    #start at 2 because 1 is the '%change since inception'
+    row_num = 2
+    total_pctChange=0
+    while (sheet1.cell(row=row_num,column=totals_col).value != None):
+        total_pctChange=total_pctChange+sheet1.cell(row=row_num,column=totals_col).value
+        row_num=row_num+1
+        
+    sheet1['P7'] = "Total Sum:"
+    sheet1['Q7'] = str(total_pctChange) + "%"
+
+def WriteFidelityStats(wb, cumulative_StockLib, curTime):
+    sheets = wb.sheetnames
+    #print 'sheets1: ' ,sheets
+    sheet1 = wb[sheets[1]]
+    dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
+    
+    green = Font(color=GREEN)
+    red = Font(color=RED)
+
+    col_num=1    
+    while (sheet1.cell(row=1,column=col_num).value != 'Buy Sell Ratio'):
+        col_num = col_num +1
+    buysell_Ratio = col_num    
+    
+    col_num=1    
+    while (sheet1.cell(row=1,column=col_num).value != '% Change Since Inception'):
+        col_num = col_num +1
+    totals_col = col_num
+    
+    row_num = 2
+    greater_75_pctChange=0
+    lower_30_pctChange=0
+    btwn_35_65_pctChange=0
+    while (sheet1.cell(row=row_num,column=totals_col).value != None):
+        if(sheet1.cell(row=row_num,column=buysell_Ratio).value >= .75):
+            print 'over .75 stock : ', sheet1.cell(row=row_num,column=1).value
+            print 'totals col = ', totals_col
+            print 'over .75 stock totals col = ', sheet1.cell(row=row_num,column=totals_col).value
+            greater_75_pctChange=greater_75_pctChange+sheet1.cell(row=row_num,column=totals_col).value
+        if (sheet1.cell(row=row_num,column=buysell_Ratio).value >= .35 and sheet1.cell(row=row_num,column=buysell_Ratio).value <= .65):
+            btwn_35_65_pctChange=btwn_35_65_pctChange+sheet1.cell(row=row_num,column=totals_col).value
+        if (sheet1.cell(row=row_num,column=buysell_Ratio).value <= .30):
+            lower_30_pctChange=lower_30_pctChange+sheet1.cell(row=row_num,column=totals_col).value
+        row_num=row_num+1
+    
+    sheet1['P8'] = ".75+ Ratio"
+    sheet1['Q8'] = str(greater_75_pctChange) + "%"
+    
+    sheet1['P9'] = ".35-.65 Ratio"
+    sheet1['Q9'] = str(btwn_35_65_pctChange) + "%"    
+        
+    sheet1['P10'] = ".30- Ratio"
+    sheet1['Q10'] = str(lower_30_pctChange) + "%"
+    
 def csvWriter(stockLib):
     curTime = datetime.datetime.now()
     
@@ -673,6 +740,11 @@ def csvWriter(stockLib):
     WriteTab_Options(wb, stockLib, curTime)
 
     WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime)
+    
+    WriteOverallStats(wb, cumulative_StockLib, curTime)
+
+    WriteFidelityStats(wb, cumulative_StockLib, curTime)
+
     
     wb.save(filepath)
     #workbook.close()

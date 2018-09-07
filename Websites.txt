@@ -2,3 +2,5 @@ https://www.barchart.com/stocks/quotes/AMD/technical-analysis
 
 
 https://www.barchart.com/stocks/quotes/EA/earnings-estimates
+
+https://www.barchart.com/stocks/signals/direction-strength 

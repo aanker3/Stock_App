@@ -89,6 +89,20 @@ def GetYahoo_StatisticsPage(ticker):
     page = requests.get(pageStr)
     tree = html.fromstring(page.content)
     return tree    
+
+def GetYahooPriceChangePct(tree)   :
+    priceChange = tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[2]')[0].text
+    priceChangePct = priceChange[priceChange.find("(")+1:priceChange.find(")")]
+    #print priceChangePct
+    #gets rid of the percent
+    priceChangePct = round(float(priceChangePct.replace("%", "")),3)
+    return priceChangePct
+    
+def GetYahooLastClose_Price(tree):  
+    #print 'tree = ',tree
+    lastClosePrice = round(float((tree.xpath('//*[@id="quote-summary"]/div[1]/table/tbody/tr[1]/td[2]/span')[0].text).replace(",","")),2)
+    #print lastClosePrice
+    return lastClosePrice
     
 def GetYahooStock_Price(tree):
     price = round(float((tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[1]')[0].text).replace(",","")),2)
@@ -110,6 +124,7 @@ def GetYahooStock_PriceChange(tree):
     #note: gives data in format of -.2717 (-.01%)  This funciton grabs would grab and return -.27 in this situation
     priceChange = tree.xpath('//*[@id="quote-header-info"]/div[3]/div[1]/div/span[2]')[0].text
     priceChange = round(float(priceChange.partition(' ')[0]),2)
+    #print priceChange
    
     return priceChange   
     
@@ -134,6 +149,7 @@ def StockParse():
     sBeta = ["1"] * 30
     sPriceChangePercent = ["1"] *30
     sYahooPriceChange = ["1"] *30
+    sLastClosePrice = ["1"] *30
     
     #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
     #Returns as #{{ticker1: price1, priceChange1, buy#1,sell#1,ratio#1},{ticker2: price2,priceChange2, buy#2,sell#2,ratio#2}, {3....}... }
@@ -169,6 +185,7 @@ def StockParse():
         treeYahoo = GetYahoo_MainPage(sTicker[i-1])
         
         sCurPrice[i-1] = float(GetYahooStock_Price(treeYahoo))
+        sLastClosePrice[i-1] = float(GetYahooLastClose_Price(treeYahoo))
         sBeta[i-1] = GetYahooStock_Beta(treeYahoo)
         if(sBeta[i-1] != "N/A"):
             sBeta[i-1]=float(sBeta[i-1])
@@ -177,8 +194,8 @@ def StockParse():
         #calculated data
         #Round to 2nd decimal space
         sBuySellRatio[i-1] = round((float(sBuy[i-1]) / (float(sBuy[i-1]) + float(sSell[i-1]))),2)
-        sPriceChangePercent[i-1] = round(float(sYahooPriceChange[i-1] / sCurPrice[i-1])*100,2) #fidelity is not always updated.  Using Yahoo info instead
-        
+        #sPriceChangePercent[i-1] = round(float(sYahooPriceChange[i-1] / sLastClosePrice[i-1])*100,2) #fidelity is not always updated.  Using Yahoo info instead
+        sPriceChangePercent[i-1] = GetYahooPriceChangePct(treeYahoo)
         #print 'ticker = ', sTicker[i-1]
         #print 'price = ', sPriceChangePercent[i-1]
         
@@ -447,7 +464,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             #FIRST add in PRICE in form "190 (-.5%)"                
             stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
             stockPrice = float(GetYahooStock_Price(treeYahoo))
-            priceChangePercent = round(float(stockPriceChange / stockPrice)*100,2)
+            priceChangePercent = GetYahooPriceChangePct(treeYahoo)
             stockPriceTemplate = str(stockPrice) + " (" + str(priceChangePercent) + "%)"
             
             sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
@@ -477,7 +494,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = red            
                            
             #add to a dictionary.  Maybe will be useful? 
-            cumulative_StockLib[stockTicker] = [stockPrice, stockPriceTemplate, fiftyDayMA, twohundDayMA]
+            cumulative_StockLib[stockTicker] = [priceChangePercent, stockPrice, stockPriceTemplate, fiftyDayMA, twohundDayMA]
         else:
             stockMatch=False
             break

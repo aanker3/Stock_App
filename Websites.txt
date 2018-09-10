@@ -1,6 +1,12 @@
-https://www.barchart.com/stocks/quotes/AMD/technical-analysis 
-
-
+#earnings
 https://www.barchart.com/stocks/quotes/EA/earnings-estimates
 
+#cant get this list
 https://www.barchart.com/stocks/signals/direction-strength 
+
+
+#Upgrades & Downgrades
+https://www.marketwatch.com/tools/stockresearch/updown
+
+#Make Our Own List
+https://finviz.com/screener.ashx

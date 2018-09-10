@@ -494,7 +494,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = red            
                            
             #add to a dictionary.  Maybe will be useful? 
-            cumulative_StockLib[stockTicker] = [priceChangePercent, stockPrice, stockPriceTemplate, fiftyDayMA, twohundDayMA]
+            cumulative_StockLib[stockTicker] = [stockPrice, priceChangePercent, stockPriceTemplate, fiftyDayMA, twohundDayMA]
         else:
             stockMatch=False
             break

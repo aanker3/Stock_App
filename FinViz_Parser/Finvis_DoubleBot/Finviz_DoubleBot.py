@@ -48,6 +48,8 @@ from openpyxl.worksheet import *
     #tree = GetGoogle_MainPage(ticker)
     #priceChange = tree.xpath('//*[@id="knowledge-finance-wholepage__entity-summary"]/div/g-card-section/div/g-card-section/div[1]/span[2]/span[1]')[0].text
     #return priceChange    
+stockLib_sBeta = 3
+    
     
 def GetBarChart_EarningsPage(ticker):
     #https://finance.yahoo.com/quote/AAPL?p=AAPL&.tsrc=fin-srch-v1
@@ -133,12 +135,66 @@ def GetYahooStock_Beta(tree):
     #print 'beta = ', beta
     return beta
 
+def FinvizStockParse():    
+    # Get Stock info
+    page = requests.get('https://finviz.com/screener.ashx?v=111&s=ta_p_doublebottom&f=geo_usa,ind_stocksonly', verify=False)
+    tree = html.fromstring(page.content)
+
+
+    #ticker = tree.xpath('//*[@class="table-dark-row-cp"]/td/a/text()') #(gets every other all stuff)
+    tickers_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[2]/a/text()') #gets odds
+    tickers_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[2]/a/text()') #gets evens
+    sectors_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[4]/a/text()') #gets odds
+    sectors_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[4]/a/text()') #gets evens
+    industries_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[5]/a/text()') #gets odds
+    industries_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[5]/a/text()') #gets evens    
+    print 'sectors_Even = ', sectors_Even
+
+    stockLib = {}
+    #make arrays of length 29.  "1" is just initializing them all with the string "1".  This should not stay in the array.
+    sTicker= ["1"] * 20
+    sCurPrice = ["1"] * 20
+    sBeta = ["1"] * 20
+    sPriceChangePercent = ["1"] *20
+    sYahooPriceChange = ["1"] *20
+    sSector = ["1"]*20
+    sIndustry = ["1"]*20
+    #do it twice for evens and odds
+    for i in range (0,10):
+        sTicker[i]=tickers_Even[i]
+        sSector[i]=sectors_Even[i]
+        sIndustry[i]=industries_Even[i]
+    for i in range (10,20):
+        sTicker[i]=tickers_Odd[i-10]
+        sSector[i]=sectors_Odd[i-10]
+        sIndustry[i]=industries_Odd[i-10]        
+    print 'sTicker =', sTicker
+    
+    #get all other data
+    for i in range (0,20):
+        #Yahoo Data
+        treeYahoo = GetYahoo_MainPage(sTicker[i])
+        sCurPrice[i] = float(GetYahooStock_Price(treeYahoo))
+        sYahooPriceChange[i] = float(GetYahooStock_PriceChange(treeYahoo))
+        sPriceChangePercent[i] = GetYahooPriceChangePct(treeYahoo)
+        sBeta[i] = GetYahooStock_Beta(treeYahoo)
+        if(sBeta[i] != "N/A"):
+            sBeta[i]=float(sBeta[i])        
+        #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
+        #Returns as #{{ticker1: price1, priceChange1, priceChangePct1, beta1},{ticker2: price2,priceChange2, pricechangepct#2,beta#2}, {3....}... }
+                    
+        stockLib[sTicker[i]] = [sCurPrice[i], sYahooPriceChange[i], sPriceChangePercent[i], sBeta[i], sSector[i], sIndustry[i]]
+    print stockLib
+    return stockLib
+
+            
+            
 #Goes to the fidelity website, parses out the info we want and returns a dict
 def StockParse():
     # Get Stock info
     page = requests.get('https://eresearch.fidelity.com/eresearch/gotoBL/fidelityTopOrders.jhtml', verify=False)
     tree = html.fromstring(page.content)
-
+    
     #make arrays of length 30.  "1" is just initializing them all with the string "1".  This should not stay in the array.
     sTicker= ["1"] * 30
     sPriceChange = ["1"] * 30
@@ -289,10 +345,17 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
     sheet['B3'] = "Price"                   #column 2
     sheet['C3'] = "Price Change"            #column 3
     sheet['D3'] = "Percent Change"          #column 4
-    sheet['E3'] = "Buy Orders"
-    sheet['F3'] = "Sell Orders"
-    sheet['G3'] = "Buy Sell Ratio"
-    sheet['H3'] = "Beta"    
+    sheet['E3'] = "Beta"    
+    sheet['F3'] = "Sector"
+    sheet['G3'] = "Industry"    
+    
+    ticker_Col=1
+    price_Col=2
+    priceChange_Col=3
+    pctChange_Col=4
+    Beta_Col=5
+    Sector_Col=6
+    Industry_Col=7
     
     #First Delete Rows (from yesterday)
     for row in sheet['A4:H35']:
@@ -308,16 +371,11 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
             col_num=col_num+1
             sheet.cell(row=row_num,column=col_num).value = item
             #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
-            if (col_num == 3 or col_num == 4):
+            if (col_num == priceChange_Col or col_num == pctChange_Col):
                 if (item >= 0):
                     sheet.cell(row=row_num,column=col_num).font = green
                 else:
-                    sheet.cell(row=row_num,column=col_num).font = red    
-            if (col_num == 7):
-                if (item >= .5):
-                    sheet.cell(row=row_num,column=col_num).font = green
-                else:
-                    sheet.cell(row=row_num,column=col_num).font = red                    
+                    sheet.cell(row=row_num,column=col_num).font = red           
         row_num=row_num+1
     
 def WriteTab_CumulativeStockList(wb, stockLib, curTime):
@@ -336,12 +394,20 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     sheet1['B1'] = "Price"                   #column 3
     sheet1['C1'] = "Price Change"            #column 4
     sheet1['D1'] = "Percent Change"          #column 5
-    sheet1['E1'] = "Buy Orders"
-    sheet1['F1'] = "Sell Orders"
-    sheet1['G1'] = "Buy Sell Ratio"
-    sheet1['H1'] = "Beta" 
-    sheet1['I1'] = "Date"         
+    sheet1['E1'] = "Beta" 
+    sheet1['F1'] = "Sector"
+    sheet1['G1'] = "Industry"
+    sheet1['H1'] = "Date" 
 
+    ticker_Col=1
+    price_Col=2
+    priceChange_Col=3
+    pctChange_Col=4
+    Beta_Col=5
+    Sector_Col=6
+    Industry_Col=7
+    Date_Col=8
+    
     row_num=2
     lastRow=sheet1.max_row
     for key in stockLib.keys():
@@ -371,13 +437,8 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
             col_num=col_num+1
             sheet1.cell(row=row_num,column=col_num).value = item
             #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
-            if (col_num == 3 or col_num == 4):
+            if (col_num == priceChange_Col or col_num == pctChange_Col):
                 if (item >= 0):
-                    sheet1.cell(row=row_num,column=col_num).font = green
-                else:
-                    sheet1.cell(row=row_num,column=col_num).font = red
-            if ( col_num == 7):
-                if (item >= .5):
                     sheet1.cell(row=row_num,column=col_num).font = green
                 else:
                     sheet1.cell(row=row_num,column=col_num).font = red
@@ -743,7 +804,7 @@ def csvWriter(stockLib):
     
     
     #workbook = xlsxwriter.Workbook('demo.xlsx')
-    filepath='StockList.xlsx'
+    filepath='Finviz_DoubleBot.xlsx'
     #filepath='demo_2.xlsx'
     wb=load_workbook(filepath)
 #    WriteTab_DailyStockList(workbook, stockLib, curTime)
@@ -759,9 +820,9 @@ def csvWriter(stockLib):
 
     WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime)
     
-    WriteOverallStats(wb, cumulative_StockLib, curTime)
+    #WriteOverallStats(wb, cumulative_StockLib, curTime)
 
-    WriteFidelityStats(wb, cumulative_StockLib, curTime)
+    #WriteFidelityStats(wb, cumulative_StockLib, curTime)
 
     
     wb.save(filepath)
@@ -789,16 +850,15 @@ def main():
     #print 'abc = ', abc
 
     
+
     stockLib = {}
-    stockLib = StockParse()
+    stockLib = FinvizStockParse()
+#    stockLib = StockParse()
     
     for key in stockLib.keys():
         i=0
-#        if key == 'ACBFF':
-#            stockLib.pop(key,None)
-#            print 'HARD-removing ACBFF'
         for item in stockLib[key]: 
-            if (i==6):
+            if (i==stockLib_sBeta):
                 if (item > 5 and item != 'N/A'):
                     stockLib.pop(key,None)
                     print 'removing key: ', key

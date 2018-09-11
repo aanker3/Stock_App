@@ -137,7 +137,7 @@ def GetYahooStock_Beta(tree):
 
 def FinvizStockParse():    
     # Get Stock info
-    page = requests.get('https://finviz.com/screener.ashx?v=111&s=ta_p_doublebottom&f=geo_usa,ind_stocksonly', verify=False)
+    page = requests.get('https://finviz.com/screener.ashx?v=111&s=it_latestbuys&f=an_recom_buybetter,geo_usa,ind_stocksonly', verify=False)
     tree = html.fromstring(page.content)
 
 
@@ -804,7 +804,7 @@ def csvWriter(stockLib):
     
     
     #workbook = xlsxwriter.Workbook('demo.xlsx')
-    filepath='Finviz_DoubleBot.xlsx'
+    filepath='Finviz_InsiderBuying_BuyPlus.xlsx'
     #filepath='demo_2.xlsx'
     wb=load_workbook(filepath)
 #    WriteTab_DailyStockList(workbook, stockLib, curTime)
@@ -816,7 +816,7 @@ def csvWriter(stockLib):
     cumulative_StockLib = WriteTabs_Price_MAs(wb, stockLib, curTime)
         
     #NOTE: THIS SHOULD BE THE SAME AS stockLib, not cumulative_StockLib (Only for testing!)
-    WriteTab_Options(wb, stockLib, curTime)
+    #WriteTab_Options(wb, stockLib, curTime)
 
     WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime)
     

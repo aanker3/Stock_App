@@ -95,7 +95,10 @@ def GetYahooPriceChangePct(tree)   :
     priceChangePct = priceChange[priceChange.find("(")+1:priceChange.find(")")]
     #print priceChangePct
     #gets rid of the percent
-    priceChangePct = round(float(priceChangePct.replace("%", "")),3)
+    if ("+-" not in priceChangePct):
+        priceChangePct = round(float(priceChangePct.replace("%", "")),3)
+    else:
+        priceChangePct = priceChangePct.replace("%", "")
     return priceChangePct
     
 def GetYahooLastClose_Price(tree):  
@@ -110,13 +113,29 @@ def GetYahooStock_Price(tree):
     return price
     
 def GetYahooStock_FiftyDayMA(tree):
-    fiftyDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[6]/td[2]')[0].text).replace(",","")),2)
+    fiftyDayMA = tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[6]/td[2]')[0].text
+#    fiftyDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[6]/td[2]')[0].text).replace(",","")),2)
+    #print 'fiftyDayMA =', fiftyDayMA
+    if fiftyDayMA == None:
+        return 0
+    else:
+        fiftyDayMA = round(float(fiftyDayMA.replace(",","")),2)
+    
     #print 'fiftyDayMA : ', fiftyDayMA
     return fiftyDayMA    
 
 def GetYahooStock_TwoHundDayMA(tree):
-    twohundDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[7]/td[2]')[0].text).replace(",","")),2)
+    #twohundDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[7]/td[2]')[0].text).replace(",","")),2)
     #print 'twohundDayMA : ', twohundDayMA
+    
+    twohundDayMA = tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[7]/td[2]')[0].text
+#    fiftyDayMA = round(float((tree.xpath('//*[@id="Col1-0-KeyStatistics-Proxy"]/section/div[2]/div[2]/div/div[1]/table/tbody/tr[6]/td[2]')[0].text).replace(",","")),2)
+    if twohundDayMA == None:
+        return 0
+    else:
+        twohundDayMA = round(float(twohundDayMA.replace(",","")),2)    
+    
+    
     return twohundDayMA        
   
     
@@ -195,6 +214,7 @@ def StockParse():
         #Round to 2nd decimal space
         sBuySellRatio[i-1] = round((float(sBuy[i-1]) / (float(sBuy[i-1]) + float(sSell[i-1]))),2)
         #sPriceChangePercent[i-1] = round(float(sYahooPriceChange[i-1] / sLastClosePrice[i-1])*100,2) #fidelity is not always updated.  Using Yahoo info instead
+        print 'on stock: ', sTicker[i-1]
         sPriceChangePercent[i-1] = GetYahooPriceChangePct(treeYahoo)
         #print 'ticker = ', sTicker[i-1]
         #print 'price = ', sPriceChangePercent[i-1]

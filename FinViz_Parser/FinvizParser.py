@@ -91,8 +91,9 @@ def GetFinvizStockINFO(tree):
     beta=stockInfo_1[6]
     priceChangePct=str(stockInfo_1[11])
     print 'Before priceChangePct=',priceChangePct
-    priceChangePct.replace(" ","")
-    priceChangePct.replace("%","")
+    priceChangePct=priceChangePct.replace("%","")
+    priceChangePct=priceChangePct.replace(" ","")
+
 
     print 'After priceChangePct=',priceChangePct
     
@@ -135,7 +136,7 @@ def GetFinvizStockINFO(tree):
     stockInfo_11 = tree.xpath('//*[@class="table-dark-row"]/td[2]/b/text()') 
     dividendPct=stockInfo_11[7]
     FinvizInfoDict={}
-    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eqp_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct, 'profitMargin':profitMargin}
+    FinvizInfoDict = {'Price': price, 'PriceChangePct':priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eqp_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct, 'profitMargin':profitMargin}
     print FinvizInfoDict
     return FinvizInfoDict
 
@@ -605,8 +606,8 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             stockPriceTemplate = str(FinvizDict.get("Price")) + " (" + str(FinvizDict.get("PriceChangePct")) + "%)"
             
             sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
-            print 'float(FinvizDict.get("priceChangePct"))=', FinvizDict.get("priceChangePct")
-            if (float(FinvizDict.get("priceChangePct")) >= 0):
+            print 'float(FinvizDict.get("PriceChangePct"))=', FinvizDict.get("PriceChangePct")
+            if (float(FinvizDict.get("PriceChangePct")) >= 0):
                 sheet_Price.cell(row=row_num,column=currentDate_column).font = green
             else:
                 sheet_Price.cell(row=row_num,column=currentDate_column).font = red
@@ -624,7 +625,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 sheet_RSI14.cell(row=row_num,column=currentDate_column).font = red            
                            
             #add to a dictionary.  Maybe will be useful? 
-            cumulative_StockLib[stockTicker] = [FinvizDict.get("Price")]
+            cumulative_StockLib[stockTicker] = [float(FinvizDict.get("Price"))]
         else:
             stockMatch=False
             break

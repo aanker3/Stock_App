@@ -22,6 +22,7 @@ from openpyxl.cell import Cell
 from openpyxl.utils import get_column_letter, column_index_from_string, coordinate_from_string
 import copy
 from openpyxl.worksheet import *
+import sys
 
 #google and morning star are not working for some reason.  List out of range.  has to do with the [0].text.  Not sure
 
@@ -75,6 +76,76 @@ def GetBarChart_Table(tree):
     table = tree.xpath("//div[@class='earnings-table-content bc-table-wrapper']/barchart-table-scroll/table/tbody/tr/td/text()")
     print 'table2 = ', table
     return table    
+    
+def GetFinviz_StockPage(ticker):
+    pageStr='https://finviz.com/quote.ashx?t='+ticker+'&ty=c&p=d&b=1'
+    page = requests.get(pageStr)
+    tree = html.fromstring(page.content)
+    return tree
+    
+def GetFinvizStockINFO(tree):
+    #gives in order of: ?perf week?, beta[0], ATR[1], previous close[2], price[3],
+    stockInfo_1 = tree.xpath('//*[@class="table-dark-row"]/td[12]/b//text()') 
+    print 'stockInfo_1 = ', stockInfo_1
+    price=stockInfo_1[10]    
+    beta=stockInfo_1[6]
+    priceChangePct=str(stockInfo_1[11])
+    print 'Before priceChangePct=',priceChangePct
+    priceChangePct.replace(" ","")
+    priceChangePct.replace("%","")
+
+    print 'After priceChangePct=',priceChangePct
+    
+    
+
+    #gives in order of: Shs Outstand [0], Shs Float[1], Short Float[2], Short Ratio[3], RSI(14)[4], Rel Volume[5], AVG VOlume[6], volume[7]
+    stockInfo_3 = tree.xpath('//*[@class="table-dark-row"]/td[10]/b//text()')     
+    sharesOutstand=stockInfo_3[0]
+    rsi_14=stockInfo_3[8]
+    avgVol=stockInfo_3[10]
+    volume=stockInfo_3[11]
+    targetPrice=stockInfo_3[4]
+    high_52=stockInfo_3[6]
+    low_52=stockInfo_3[7]
+
+    
+    #gives in order of: SMA200 (PCT)
+    stockInfo_5 = tree.xpath('//*[@class="table-dark-row"]/td[8]/b//text()') 
+    sma_200=stockInfo_5[11]
+    profitMargin=stockInfo_5[9]
+    
+    #gives in order of: EPS (ttm)[0], EPS next Y[1], EPS next Q[2], EPS this Y[3], EPS Next Y [4], EPS next 5Y[5], Sales past 5Y[6], Sales Q/Q[7], EPS Q/Q[8], Earnings[9] 
+    stockInfo_7 = tree.xpath('//*[@class="table-dark-row"]/td[6]/b//text()') 
+    print 'stockInfo_7=',stockInfo_7
+    eps_NextY=stockInfo_7[1]
+    sales_QQ=stockInfo_7[8]
+    eps_QQ=stockInfo_7[9]
+    epsPast5Y=stockInfo_7[6]
+    sma_50=stockInfo_7[11]
+    
+    #gives in order of:  P/B[0],P/C[1],quick Ratio[2], Current Ratio
+    stockInfo_9 = tree.xpath('//*[@class="table-dark-row"]/td[4]/b//text()')     
+    pe=stockInfo_9[0]
+    forward_PE=stockInfo_9[1]
+    ps=stockInfo_9[3]
+    p_FCF=stockInfo_9[6]
+    sma_20=stockInfo_9[11]
+
+    #gives in order of: Index[0],Market Cap[1], Income[2], Sales[3], Book/sh[4], Cash/sh[5], Dividend[6], Dividend%[7], Employees[8], Optionable[9], Shortable[10], Recom[11]
+    stockInfo_11 = tree.xpath('//*[@class="table-dark-row"]/td[2]/b/text()') 
+    dividendPct=stockInfo_11[7]
+    FinvizInfoDict={}
+    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eqp_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct, 'profitMargin':profitMargin}
+    print FinvizInfoDict
+    return FinvizInfoDict
+
+def GetFinvizStockINFO_test(tree):
+    #gives in order of: 
+    print tree.xpath('//*[@class="table-dark-row"]/td[12]/b//text()')
+
+    
+    #print stockInfo
+    #return priceChangePct     
     
 def GetYahoo_MainPage(ticker):
     #https://finance.yahoo.com/quote/AAPL?p=AAPL&.tsrc=fin-srch-v1
@@ -135,9 +206,9 @@ def GetYahooStock_Beta(tree):
     #print 'beta = ', beta
     return beta
 
-def FinvizStockParse():    
+def FinvizStockParse(web):    
     # Get Stock info
-    page = requests.get('https://finviz.com/screener.ashx?v=111&s=ta_newlow&f=geo_usa', verify=False)
+    page = requests.get(web, verify=False)
     tree = html.fromstring(page.content)
 
 
@@ -486,26 +557,26 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     red = Font(color=RED)
     
     price_ENUM=2
-    fiftyDayMA_ENUM=3
-    twohundDayMA_ENUM=4
+    Beta_ENUM=3
+    Rsi14_ENUM=4
     sheets = wb.sheetnames
     print 'sheets2: ' ,sheets
     sheet_Price = wb[sheets[price_ENUM]]
-    sheet_fiftyDay = wb[sheets[fiftyDayMA_ENUM]]
-    sheet_twohundDay = wb[sheets[twohundDayMA_ENUM]]
+    sheet_Beta = wb[sheets[Beta_ENUM]]
+    sheet_RSI14 = wb[sheets[Rsi14_ENUM]]
     currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)
-    currentDate_Column_fiftyDay = writeTemplate_Price_MAs(sheet_fiftyDay, stockLib, curTime)
-    currentDate_Column_twohundDay = writeTemplate_Price_MAs(sheet_twohundDay, stockLib, curTime)
+    currentDate_Column_Beta = writeTemplate_Price_MAs(sheet_Beta, stockLib, curTime)
+    currentDate_Column_RSI14 = writeTemplate_Price_MAs(sheet_RSI14, stockLib, curTime)
 
     #make sure dates are the same!
-    if((currentDate_Column_price == currentDate_Column_fiftyDay) and (currentDate_Column_price == currentDate_Column_twohundDay)):
+    if((currentDate_Column_price == currentDate_Column_Beta) and (currentDate_Column_price == currentDate_Column_RSI14)):
         currentDate_column = currentDate_Column_price
         print 'All column dates are the same.  Good! currentDate_column = ', currentDate_column
     else:
         print 'Column Dates are not the same, error!'
         print 'currentDate_Column_price = ', currentDate_Column_price
-        print 'currentDate_Column_fiftyDay = ', currentDate_Column_fiftyDay
-        print 'currentDate_Column_twohundDay = ', currentDate_Column_twohundDay
+        print 'currentDate_Column_Beta = ', currentDate_Column_Beta
+        print 'currentDate_Column_RSI14 = ', currentDate_Column_RSI14
         
     cumulative_StockLib = {}
     
@@ -515,48 +586,45 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     row_num=2
     while (sheet_Price.cell(row=row_num,column=stock_col).value != None):
         #print 'row_num= ', row_num
-        if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_fiftyDay.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_twohundDay.cell(row=row_num,column=stock_col).value)):
+        if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_Beta.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_RSI14.cell(row=row_num,column=stock_col).value)):
             #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
             
             stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
             #Data from yahoo SATISTICS PAGE
-            treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
+            #treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
             print 'on stock : ', stockTicker
 
-            #FIRST add in PRICE in form "190 (-.5%)"                
-            stockPriceChange = float(GetYahooStock_PriceChange(treeYahoo))
-            stockPrice = float(GetYahooStock_Price(treeYahoo))
-            priceChangePercent = GetYahooPriceChangePct(treeYahoo)
-            stockPriceTemplate = str(stockPrice) + " (" + str(priceChangePercent) + "%)"
+            FinvizDict={}
+            finvizTree = GetFinviz_StockPage(stockTicker)
+            FinvizDict = GetFinvizStockINFO(finvizTree)
+            print 'FinvizDict=', FinvizDict
+#    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'profitMargin':profitMargin, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eqp_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct}
+            
+            #FIRST add in PRICE in form "190 (-.5%)"   
+            print 'get!', FinvizDict.get('rsi_14')
+            stockPriceTemplate = str(FinvizDict.get("Price")) + " (" + str(FinvizDict.get("PriceChangePct")) + "%)"
             
             sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
-            if (priceChangePercent >= 0):
+            print 'float(FinvizDict.get("priceChangePct"))=', FinvizDict.get("priceChangePct")
+            if (float(FinvizDict.get("priceChangePct")) >= 0):
                 sheet_Price.cell(row=row_num,column=currentDate_column).font = green
             else:
                 sheet_Price.cell(row=row_num,column=currentDate_column).font = red
                 
-            #Second Add in 50 Day MA
-            fiftyDayMA = float(GetYahooStock_FiftyDayMA(treeYahoo))
-            sheet_fiftyDay.cell(row=row_num,column=currentDate_column).value = fiftyDayMA
-            
-            #Add color if over /under moving averages
-            if(fiftyDayMA > stockPrice):
-                sheet_fiftyDay.cell(row=row_num,column=currentDate_column).font = green
-            else:
-                sheet_fiftyDay.cell(row=row_num,column=currentDate_column).font = red
+            #Second Add in BETA
+            sheet_Beta.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("beta")
                             
             #third Add in 200 Day MA
-            twohundDayMA = float(GetYahooStock_TwoHundDayMA(treeYahoo))
-            sheet_twohundDay.cell(row=row_num,column=currentDate_column).value = twohundDayMA
+            sheet_RSI14.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("rsi_14")
 
             #Add color if over /under moving averages
-            if(twohundDayMA > stockPrice):
-                sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = green
-            else:
-                sheet_twohundDay.cell(row=row_num,column=currentDate_column).font = red            
+            if(float(FinvizDict.get("rsi_14")) < 30):
+                sheet_RSI14.cell(row=row_num,column=currentDate_column).font = green
+            if(float(FinvizDict.get("rsi_14")) > 70):
+                sheet_RSI14.cell(row=row_num,column=currentDate_column).font = red            
                            
             #add to a dictionary.  Maybe will be useful? 
-            cumulative_StockLib[stockTicker] = [stockPrice, priceChangePercent, stockPriceTemplate, fiftyDayMA, twohundDayMA]
+            cumulative_StockLib[stockTicker] = [FinvizDict.get("Price")]
         else:
             stockMatch=False
             break
@@ -798,13 +866,18 @@ def WriteFidelityStats(wb, cumulative_StockLib, curTime):
     sheet1['P10'] = ".30- Ratio"
     sheet1['Q10'] = str(lower_30_pctChange) + "%"
     
-def csvWriter(stockLib):
+def csvWriter(stockLib, listName):
     curTime = datetime.datetime.now()
     
     
-    
+    backslash='\abc'
+    print 'backslash=', backslash
     #workbook = xlsxwriter.Workbook('demo.xlsx')
-    filepath='FinvizStockList.xlsx'
+    filepath = os.path.join(listName, listName +'.xlsx')
+    #os.path.join(r"C:\mypath", "subfolder")
+    #filepath=listName + '/' + listName + '.xlsx'
+    filepath=listName+'/'+listName+'.xlsx'
+    print 'filepath =',filepath
     #filepath='demo_2.xlsx'
     wb=load_workbook(filepath)
 #    WriteTab_DailyStockList(workbook, stockLib, curTime)
@@ -816,7 +889,8 @@ def csvWriter(stockLib):
     cumulative_StockLib = WriteTabs_Price_MAs(wb, stockLib, curTime)
         
     #NOTE: THIS SHOULD BE THE SAME AS stockLib, not cumulative_StockLib (Only for testing!)
-    WriteTab_Options(wb, stockLib, curTime)
+    #lets not do the options tab for finviz
+    #WriteTab_Options(wb, stockLib, curTime)
 
     WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime)
     
@@ -848,11 +922,25 @@ def main():
     #print 'earning dates[1] = ', earningDates[1]
     #abc = earningDates[0] + " " + earningDates[1]
     #print 'abc = ', abc
+    listName=sys.argv[1]
+    print 'listName=',listName 
 
+    #FinvizDict={}
+    finvizTree = GetFinviz_StockPage("ACCO")
+    FinvizDict = GetFinvizStockINFO_test(finvizTree)
+    #beta,price = GetFinvizStockINFO_Price_Beta(finvizTree)
+    #print 'beta= ', beta
+    #print 'price= ', price
     
-
+    #priceChangePct=GetFinvizStockINFO_PriceChangePct(finvizTree)
+    #print 'priceChangePct=', priceChangePct
+    
+    if listName == 'Finviz_TLSupport_Oversold40_InvHammer':
+        web='https://finviz.com/screener.ashx?v=111&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
+    print 'web=',web
+        
     stockLib = {}
-    stockLib = FinvizStockParse()
+    stockLib = FinvizStockParse(web)
 #    stockLib = StockParse()
     
     for key in stockLib.keys():
@@ -865,7 +953,7 @@ def main():
             i=i+1
     print 'stockLib in MAIN ', stockLib    
     
-    csvWriter(stockLib)
+    csvWriter(stockLib, listName)
     
     print 'Ticker: Price, PriceChange, price change %, buy amount, sell amount, ratio, beta'
 

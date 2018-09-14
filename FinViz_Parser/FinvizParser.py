@@ -214,12 +214,23 @@ def FinvizStockParse(web):
 
 
     #ticker = tree.xpath('//*[@class="table-dark-row-cp"]/td/a/text()') #(gets every other all stuff)
-    tickers_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[2]/a/text()') #gets odds
-    tickers_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[2]/a/text()') #gets evens
-    sectors_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[4]/a/text()') #gets odds
-    sectors_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[4]/a/text()') #gets evens
-    industries_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[5]/a/text()') #gets odds
-    industries_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[5]/a/text()') #gets evens    
+    tickers_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[1]/a/text()') #gets odds
+    print 'tickers_Even=',tickers_Even
+    tickers_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[1]/a/text()') #gets evens
+    sectors_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[3]/a/text()') #gets odds
+    print 'sectors_Even = ', sectors_Even
+    sectors_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[3]/a/text()') #gets evens
+    industries_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[4]/a/text()') #gets odds
+    industries_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[4]/a/text()') #gets evens
+    prices_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[8]//text()') #gets ODDS
+    print 'prices_Odd=', prices_Odd
+    prices_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[8]//text()') #gets evens
+    priceChangePct_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[9]//text()') #gets ODDS
+    print 'priceChangePct_Odd=', priceChangePct_Odd
+    priceChangePct_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[9]//text()') #get
+    beta_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[6]//text()') #gets ODDS
+    print 'beta_Odd=', beta_Odd
+    beta_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[6]//text()') #gets EVENS
     print 'sectors_Even = ', sectors_Even
 
     stockLib = {}
@@ -231,31 +242,42 @@ def FinvizStockParse(web):
     sYahooPriceChange = ["1"] *20
     sSector = ["1"]*20
     sIndustry = ["1"]*20
+    
     #do it twice for evens and odds
     for i in range (0,10):
         sTicker[i]=tickers_Even[i]
         sSector[i]=sectors_Even[i]
         sIndustry[i]=industries_Even[i]
+        sCurPrice[i]=float(prices_Even[i])
+        sPriceChangePercent[i]=float(priceChangePct_Even[i].replace("%",""))
+        sBeta[i]=beta_Even[i]
+        if(sBeta[i] != "-"):
+            sBeta[i]=float(sBeta[i])         
     for i in range (10,20):
         sTicker[i]=tickers_Odd[i-10]
         sSector[i]=sectors_Odd[i-10]
-        sIndustry[i]=industries_Odd[i-10]        
+        sIndustry[i]=industries_Odd[i-10]
+        sCurPrice[i]=float(prices_Odd[i-10])   
+        sPriceChangePercent[i]=float(priceChangePct_Odd[i-10].replace("%",""))     
+        sBeta[i]=beta_Odd[i-10]
+        if(sBeta[i] != "-"):
+            sBeta[i]=float(sBeta[i])              
     print 'sTicker =', sTicker
     
     #get all other data
     for i in range (0,20):
         #Yahoo Data
-        treeYahoo = GetYahoo_MainPage(sTicker[i])
-        sCurPrice[i] = float(GetYahooStock_Price(treeYahoo))
-        sYahooPriceChange[i] = float(GetYahooStock_PriceChange(treeYahoo))
-        sPriceChangePercent[i] = GetYahooPriceChangePct(treeYahoo)
-        sBeta[i] = GetYahooStock_Beta(treeYahoo)
-        if(sBeta[i] != "N/A"):
-            sBeta[i]=float(sBeta[i])        
+        #treeYahoo = GetYahoo_MainPage(sTicker[i])
+        #sCurPrice[i] = float(GetYahooStock_Price(treeYahoo))
+        #sYahooPriceChange[i] = float(GetYahooStock_PriceChange(treeYahoo))
+        #sPriceChangePercent[i] = GetYahooPriceChangePct(treeYahoo)
+        #sBeta[i] = GetYahooStock_Beta(treeYahoo)
+        #if(sBeta[i] != "N/A"):
+        #    sBeta[i]=float(sBeta[i])        
         #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
         #Returns as #{{ticker1: price1, priceChange1, priceChangePct1, beta1},{ticker2: price2,priceChange2, pricechangepct#2,beta#2}, {3....}... }
                     
-        stockLib[sTicker[i]] = [sCurPrice[i], sYahooPriceChange[i], sPriceChangePercent[i], sBeta[i], sSector[i], sIndustry[i]]
+        stockLib[sTicker[i]] = [sCurPrice[i], sPriceChangePercent[i], sBeta[i], sSector[i], sIndustry[i]]
     print stockLib
     return stockLib
 
@@ -415,7 +437,6 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
     sheet['D1'] = "Stock Additions"         
     sheet['A3'] = "Ticker"                  #column 1
     sheet['B3'] = "Price"                   #column 2
-    sheet['C3'] = "Price Change"            #column 3
     sheet['D3'] = "Percent Change"          #column 4
     sheet['E3'] = "Beta"    
     sheet['F3'] = "Sector"
@@ -423,11 +444,10 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
     
     ticker_Col=1
     price_Col=2
-    priceChange_Col=3
-    pctChange_Col=4
-    Beta_Col=5
-    Sector_Col=6
-    Industry_Col=7
+    pctChange_Col=3
+    Beta_Col=4
+    Sector_Col=5
+    Industry_Col=6
     
     #First Delete Rows (from yesterday)
     for row in sheet['A4:H35']:
@@ -443,7 +463,7 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
             col_num=col_num+1
             sheet.cell(row=row_num,column=col_num).value = item
             #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
-            if (col_num == priceChange_Col or col_num == pctChange_Col):
+            if (col_num == pctChange_Col):
                 if (item >= 0):
                     sheet.cell(row=row_num,column=col_num).font = green
                 else:
@@ -464,7 +484,6 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     
     sheet1['A1'] = "Ticker"                  #column 2
     sheet1['B1'] = "Price"                   #column 3
-    sheet1['C1'] = "Price Change"            #column 4
     sheet1['D1'] = "Percent Change"          #column 5
     sheet1['E1'] = "Beta" 
     sheet1['F1'] = "Sector"
@@ -473,12 +492,11 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
 
     ticker_Col=1
     price_Col=2
-    priceChange_Col=3
-    pctChange_Col=4
-    Beta_Col=5
-    Sector_Col=6
-    Industry_Col=7
-    Date_Col=8
+    pctChange_Col=3
+    Beta_Col=4
+    Sector_Col=5
+    Industry_Col=6
+    Date_Col=7
     
     row_num=2
     lastRow=sheet1.max_row
@@ -509,7 +527,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
             col_num=col_num+1
             sheet1.cell(row=row_num,column=col_num).value = item
             #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
-            if (col_num == priceChange_Col or col_num == pctChange_Col):
+            if (col_num == pctChange_Col):
                 if (item >= 0):
                     sheet1.cell(row=row_num,column=col_num).font = green
                 else:
@@ -937,7 +955,9 @@ def main():
     #print 'priceChangePct=', priceChangePct
     
     if listName == 'Finviz_TLSupport_Oversold40_InvHammer':
-        web='https://finviz.com/screener.ashx?v=111&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
+        web = 'https://finviz.com/screener.ashx?v=152&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3&c=1,2,3,4,6,48,59,65,66,67'
+        #web='https://finviz.com/screener.ashx?v=150&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
+        #web='https://finviz.com/screener.ashx?v=111&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
     print 'web=',web
         
     stockLib = {}

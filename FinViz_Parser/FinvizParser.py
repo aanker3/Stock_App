@@ -49,7 +49,7 @@ import sys
     #tree = GetGoogle_MainPage(ticker)
     #priceChange = tree.xpath('//*[@id="knowledge-finance-wholepage__entity-summary"]/div/g-card-section/div/g-card-section/div[1]/span[2]/span[1]')[0].text
     #return priceChange    
-stockLib_sBeta = 3
+stockLib_sBeta = 2
     
     
 def GetBarChart_EarningsPage(ticker):
@@ -243,8 +243,10 @@ def FinvizStockParse(web):
     sSector = ["1"]*20
     sIndustry = ["1"]*20
     
+    #BUG: IF Finviz stocks are not full
+    
     #do it twice for evens and odds
-    for i in range (0,10):
+    for i in range (0,len(tickers_Even)):
         sTicker[i]=tickers_Even[i]
         sSector[i]=sectors_Even[i]
         sIndustry[i]=industries_Even[i]
@@ -253,7 +255,7 @@ def FinvizStockParse(web):
         sBeta[i]=beta_Even[i]
         if(sBeta[i] != "-"):
             sBeta[i]=float(sBeta[i])         
-    for i in range (10,20):
+    for i in range (10,10+len(tickers_Odd)):
         sTicker[i]=tickers_Odd[i-10]
         sSector[i]=sectors_Odd[i-10]
         sIndustry[i]=industries_Odd[i-10]
@@ -425,7 +427,7 @@ def WriteTab_DailyStockList_old(workbook, stockLib, curTime):
 def WriteTab_DailyStockList(wb, stockLib, curTime):
     #sheet = wb.active
     sheets = wb.sheetnames
-    print 'sheets0 : ' ,sheets
+    print 'DAILYSTOCKLIST sheets0 : ' ,sheets
     sheet = wb[sheets[0]]
     dateStr=str(curTime.month)+"_"+str(curTime.day)+"_"+str(curTime.year)     
     date_StockList_Title=dateStr+" Stock List"
@@ -437,10 +439,10 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
     sheet['D1'] = "Stock Additions"         
     sheet['A3'] = "Ticker"                  #column 1
     sheet['B3'] = "Price"                   #column 2
-    sheet['D3'] = "Percent Change"          #column 4
-    sheet['E3'] = "Beta"    
-    sheet['F3'] = "Sector"
-    sheet['G3'] = "Industry"    
+    sheet['C3'] = "Percent Change"          #column 4
+    sheet['D3'] = "Beta"    
+    sheet['E3'] = "Sector"
+    sheet['F3'] = "Industry"    
     
     ticker_Col=1
     price_Col=2
@@ -457,6 +459,7 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
             
     row_num=4
     for key in stockLib.keys():
+        print 'daily stocklist on key: ', key
         col_num=1
         sheet.cell(row=row_num, column=col_num).value = key
         for item in stockLib[key]:               
@@ -481,14 +484,6 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     red = Font(color=RED)
     
     #sheet1.title = "Cumulative_Stock_List"
-    
-    sheet1['A1'] = "Ticker"                  #column 2
-    sheet1['B1'] = "Price"                   #column 3
-    sheet1['D1'] = "Percent Change"          #column 5
-    sheet1['E1'] = "Beta" 
-    sheet1['F1'] = "Sector"
-    sheet1['G1'] = "Industry"
-    sheet1['H1'] = "Date" 
 
     ticker_Col=1
     price_Col=2
@@ -497,7 +492,16 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     Sector_Col=5
     Industry_Col=6
     Date_Col=7
-    
+        
+    sheet1.cell(row=1,column=ticker_Col).value = "Ticker"                  #column 2
+    sheet1.cell(row=1,column=price_Col).value = "Price"                   #column 3
+    sheet1.cell(row=1,column=pctChange_Col).value = "Percent Change"          #column 5
+    sheet1.cell(row=1,column=Beta_Col).value  = "Beta" 
+    sheet1.cell(row=1,column=Sector_Col).value  = "Sector"
+    sheet1.cell(row=1,column=Industry_Col).value  = "Industry"
+    sheet1.cell(row=1,column=Date_Col).value  = "Date" 
+
+
     row_num=2
     lastRow=sheet1.max_row
     for key in stockLib.keys():
@@ -537,7 +541,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
 def writeTemplate_Price_MAs(sheet2, stockLib, curTime):
 
     dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
-    
+    sheet2['A1'] = "Stock/Date"
     green = Font(color=GREEN)
     red = Font(color=RED) 
 
@@ -578,15 +582,35 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     price_ENUM=2
     Beta_ENUM=3
     Rsi14_ENUM=4
+    sharesOutstanding_ENUM=5
+    avgVol_ENUM=6
+    volume_ENUM=7
+    targetPrice_ENUM=8
+    high52W_ENUM=9
+    low52W_ENUM=10
     sheets = wb.sheetnames
     print 'sheets2: ' ,sheets
     sheet_Price = wb[sheets[price_ENUM]]
     sheet_Beta = wb[sheets[Beta_ENUM]]
     sheet_RSI14 = wb[sheets[Rsi14_ENUM]]
+    sheet_SharesOutstanding=wb[sheets[sharesOutstanding_ENUM]]
+    sheet_AvgVolume = wb[sheets[avgVol_ENUM]]
+    sheet_Volume = wb[sheets[volume_ENUM]]
+    sheet_TargetPrice = wb[sheets[targetPrice_ENUM]]
+    sheet_High52W = wb[sheets[high52W_ENUM]]
+    sheet_Low52W = wb[sheets[low52W_ENUM]]
+    
+    
     currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)
     currentDate_Column_Beta = writeTemplate_Price_MAs(sheet_Beta, stockLib, curTime)
     currentDate_Column_RSI14 = writeTemplate_Price_MAs(sheet_RSI14, stockLib, curTime)
-
+    writeTemplate_Price_MAs(sheet_SharesOutstanding, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_AvgVolume, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_Volume, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_TargetPrice, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_High52W, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_Low52W, stockLib, curTime)
+    
     #make sure dates are the same!
     if((currentDate_Column_price == currentDate_Column_Beta) and (currentDate_Column_price == currentDate_Column_RSI14)):
         currentDate_column = currentDate_Column_price
@@ -633,7 +657,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             #Second Add in BETA
             sheet_Beta.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("beta")
                             
-            #third Add in 200 Day MA
+            #third Add in RSI 14
             sheet_RSI14.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("rsi_14")
 
             #Add color if over /under moving averages
@@ -642,6 +666,25 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             if(float(FinvizDict.get("rsi_14")) > 70):
                 sheet_RSI14.cell(row=row_num,column=currentDate_column).font = red            
                            
+            #add in SharesOutstanding
+            sheet_SharesOutstanding.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("shares_Outstanding")
+
+            #add in AvgVolume
+            sheet_AvgVolume.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("avgVol")
+            
+            #add in Volume
+            sheet_Volume.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("volume")            
+            
+            #add in target price
+            sheet_TargetPrice.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("targetPrice")    
+            
+            #add in Dist from 52 week high
+            sheet_High52W.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("high_52")   
+            
+            #add in dist from 52W Low
+            sheet_Low52W.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("low_52")   
+            
+            
             #add to a dictionary.  Maybe will be useful? 
             cumulative_StockLib[stockTicker] = [float(FinvizDict.get("Price"))]
         else:

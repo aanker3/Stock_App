@@ -541,7 +541,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
 def writeTemplate_Price_MAs(sheet2, stockLib, curTime):
 
     dateStr=str(curTime.month)+"/"+str(curTime.day)+"/"+str(curTime.year)     
-    sheet2['A1'] = "Stock/Date"
+    sheet2.cell(row=1,column=1).value = "Stock/Date"
     green = Font(color=GREEN)
     red = Font(color=RED) 
 
@@ -588,6 +588,13 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     targetPrice_ENUM=8
     high52W_ENUM=9
     low52W_ENUM=10
+    sma20_ENUM=11
+    sma50_ENUM=12
+    sma200_ENUM=13
+    profitMargin_ENUM=14
+    eps_NextY_ENUM=15
+    sales_QQ_ENUM=16
+    
     sheets = wb.sheetnames
     print 'sheets2: ' ,sheets
     sheet_Price = wb[sheets[price_ENUM]]
@@ -599,7 +606,12 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     sheet_TargetPrice = wb[sheets[targetPrice_ENUM]]
     sheet_High52W = wb[sheets[high52W_ENUM]]
     sheet_Low52W = wb[sheets[low52W_ENUM]]
-    
+    sheet_Sma20 = wb[sheets[sma20_ENUM]]
+    sheet_Sma50 = wb[sheets[sma50_ENUM]]
+    sheet_Sma200 = wb[sheets[sma200_ENUM]] 
+    sheet_profitMargin = wb[sheets[profitMargin_ENUM]]
+    sheet_eps_NextY = wb[sheets[eps_NextY_ENUM]]
+    sheet_sales_QQ = wb[sheets[sales_QQ_ENUM]] 
     
     currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)
     currentDate_Column_Beta = writeTemplate_Price_MAs(sheet_Beta, stockLib, curTime)
@@ -610,6 +622,12 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     writeTemplate_Price_MAs(sheet_TargetPrice, stockLib, curTime)
     writeTemplate_Price_MAs(sheet_High52W, stockLib, curTime)
     writeTemplate_Price_MAs(sheet_Low52W, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_Sma20, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_Sma50, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_Sma200, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_profitMargin, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_eps_NextY, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_sales_QQ, stockLib, curTime)
     
     #make sure dates are the same!
     if((currentDate_Column_price == currentDate_Column_Beta) and (currentDate_Column_price == currentDate_Column_RSI14)):
@@ -658,13 +676,16 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             sheet_Beta.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("beta")
                             
             #third Add in RSI 14
-            sheet_RSI14.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("rsi_14")
+            sheet_RSI14.cell(row=row_num,column=currentDate_column).value = float(FinvizDict.get("rsi_14"))
 
             #Add color if over /under moving averages
-            if(float(FinvizDict.get("rsi_14")) < 30):
+            if(float(FinvizDict.get("rsi_14")) < 30 ):
                 sheet_RSI14.cell(row=row_num,column=currentDate_column).font = green
-            if(float(FinvizDict.get("rsi_14")) > 70):
-                sheet_RSI14.cell(row=row_num,column=currentDate_column).font = red            
+            elif(float(FinvizDict.get("rsi_14")) > 70):
+                sheet_RSI14.cell(row=row_num,column=currentDate_column).font = red
+            else:
+                sheet_RSI14.cell(row=row_num,column=currentDate_column).font = None
+                
                            
             #add in SharesOutstanding
             sheet_SharesOutstanding.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("shares_Outstanding")
@@ -683,8 +704,26 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             
             #add in dist from 52W Low
             sheet_Low52W.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("low_52")   
+    
+            #add in dist from sma20
+            sheet_Sma20.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("sma_20")       
+ 
+            #add in dist from sma50
+            sheet_Sma50.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("sma_50")     
             
+            #add in dist from sma200
+            sheet_Sma200.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("sma_200")     
+
+            #add in profit margin
+            sheet_profitMargin.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("profitMargin")   
             
+            #eps next Y
+            sheet_eps_NextY.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("eps_NextY")   
+            
+            #Sales QQ
+            sheet_sales_QQ.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("sales_QQ")   
+            
+ 
             #add to a dictionary.  Maybe will be useful? 
             cumulative_StockLib[stockTicker] = [float(FinvizDict.get("Price"))]
         else:

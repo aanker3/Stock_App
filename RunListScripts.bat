@@ -5,10 +5,6 @@ cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_DoubleBot
 python Finviz_DoubleBot.py
 copy Finviz_DoubleBot.xlsx StockSheetBackups\Finviz_DoubleBot_%backupFilename%_PostRun.xlsx
 
-cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_StrongBuy
-python Finviz_StrongBuy.py
-copy Finviz_StrongBuy.xlsx StockSheetBackups\Finviz_StrongBuy_%backupFilename%_PostRun.xlsx
-
 cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_TLSupport
 python Finviz_TLSupport.py
 copy Finviz_TLSupport.xlsx StockSheetBackups\Finviz_TLSupport_%backupFilename%_PostRun.xlsx

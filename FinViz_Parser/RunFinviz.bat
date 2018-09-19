@@ -1,3 +1,9 @@
+set backupFilename=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%
+echo %backupFilename%
+
 cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser
-python FinvizParser.py Finviz_TLSupport_Oversold40_InvHammer 
+python FinvizParser.py Finviz_TLSupport_Oversold40_InvHammer
+copy Finviz_TLSupport_Oversold40_InvHammer\Finviz_TLSupport_Oversold40_InvHammer.xlsx Finviz_TLSupport_Oversold40_InvHammer\StockSheetBackups\Finviz_TLSupport_Oversold40_InvHammer%backupFilename%_PostRun.xlsx
+python FinvizParser.py Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25
+copy Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25\Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25.xlsx Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25\StockSheetBackups\Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25%backupFilename%_PostRun.xlsx
 pause

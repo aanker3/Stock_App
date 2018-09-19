@@ -134,7 +134,9 @@ def GetFinvizStockINFO(tree):
 
     #gives in order of: Index[0],Market Cap[1], Income[2], Sales[3], Book/sh[4], Cash/sh[5], Dividend[6], Dividend%[7], Employees[8], Optionable[9], Shortable[10], Recom[11]
     stockInfo_11 = tree.xpath('//*[@class="table-dark-row"]/td[2]/b/text()') 
-    dividendPct=stockInfo_11[7]
+    dividendPct=stockInfo_11[7] #BUG NOTE: This has been seen getting EMPLOYEES value
+    if not (("%" in dividendPct) or ("-" in dividendPct)):
+        dividendPct="known_bug"
     FinvizInfoDict={}
     FinvizInfoDict = {'Price': price, 'PriceChangePct':priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eps_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct, 'profitMargin':profitMargin}
     print FinvizInfoDict
@@ -256,19 +258,19 @@ def FinvizStockParse(web):
         sRSI[i]=rsi_Even[i] 
         if (sRSI[i] != "-"):
             sRSI[i] = float(sRSI[i])        
-    for i in range (10,10+len(tickers_Odd)):
-        sTicker[i]=tickers_Odd[i-10]
-        sSector[i]=sectors_Odd[i-10]
-        sIndustry[i]=industries_Odd[i-10]
-        sCurPrice[i]=float(prices_Odd[i-10])   
-        sPriceChangePercent[i]=float(priceChangePct_Odd[i-10].replace("%",""))     
-        sRSI[i]=rsi_Odd[i-10]    
+    for i in range (len(tickers_Even),len(tickers_Even)+len(tickers_Odd)):
+        sTicker[i]=tickers_Odd[i-len(tickers_Even)]
+        sSector[i]=sectors_Odd[i-len(tickers_Even)]
+        sIndustry[i]=industries_Odd[i-len(tickers_Even)]
+        sCurPrice[i]=float(prices_Odd[i-len(tickers_Even)])   
+        sPriceChangePercent[i]=float(priceChangePct_Odd[i-len(tickers_Even)].replace("%",""))     
+        sRSI[i]=rsi_Odd[i-len(tickers_Even)]    
         if (sRSI[i] != "-"):
             sRSI[i] = float(sRSI[i])
     print 'sTicker =', sTicker
     
     #get all other data
-    for i in range (0,20):
+    for i in range (0,len(tickers_Even) + len(tickers_Odd)):
         #Yahoo Data
         #treeYahoo = GetYahoo_MainPage(sTicker[i])
         #sCurPrice[i] = float(GetYahooStock_Price(treeYahoo))
@@ -1095,6 +1097,10 @@ def main():
     
     if listName == 'Finviz_TLSupport_Oversold40_InvHammer':
         web = 'https://finviz.com/screener.ashx?v=152&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25':
+        web = 'https://finviz.com/screener.ashx?v=152&f=geo_usa,ind_stocksonly,ta_averagetruerange_u2.5,ta_pattern_wedge2,ta_rsi_os40&ft=3&c=1,2,3,4,6,48,59,65,66,67'
+    else:
+        print 'could not find listName: ', listName
         #web='https://finviz.com/screener.ashx?v=150&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
         #web='https://finviz.com/screener.ashx?v=111&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
     print 'web=',web

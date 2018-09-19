@@ -49,7 +49,7 @@ import sys
     #tree = GetGoogle_MainPage(ticker)
     #priceChange = tree.xpath('//*[@id="knowledge-finance-wholepage__entity-summary"]/div/g-card-section/div/g-card-section/div[1]/span[2]/span[1]')[0].text
     #return priceChange    
-stockLib_sBeta = 2
+#stockLib_sBeta = 2
     
     
 def GetBarChart_EarningsPage(ticker):
@@ -228,16 +228,17 @@ def FinvizStockParse(web):
     priceChangePct_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[9]//text()') #gets ODDS
     print 'priceChangePct_Odd=', priceChangePct_Odd
     priceChangePct_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[9]//text()') #get
-    beta_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[6]//text()') #gets ODDS
-    print 'beta_Odd=', beta_Odd
-    beta_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[6]//text()') #gets EVENS
+    #beta_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[6]//text()') #gets 
+    rsi_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[7]//text()') #gets ODDS
+    print 'rsi_odd=', rsi_Odd
+    rsi_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[7]//text()') #gets EVENS
     print 'sectors_Even = ', sectors_Even
 
     stockLib = {}
     #make arrays of length 29.  "1" is just initializing them all with the string "1".  This should not stay in the array.
     sTicker= ["1"] * 20
     sCurPrice = ["1"] * 20
-    sBeta = ["1"] * 20
+    sRSI = ["1"] * 20
     sPriceChangePercent = ["1"] *20
     sYahooPriceChange = ["1"] *20
     sSector = ["1"]*20
@@ -252,18 +253,18 @@ def FinvizStockParse(web):
         sIndustry[i]=industries_Even[i]
         sCurPrice[i]=float(prices_Even[i])
         sPriceChangePercent[i]=float(priceChangePct_Even[i].replace("%",""))
-        sBeta[i]=beta_Even[i]
-        if(sBeta[i] != "-"):
-            sBeta[i]=float(sBeta[i])         
+        sRSI[i]=rsi_Even[i] 
+        if (sRSI[i] != "-"):
+            sRSI[i] = float(sRSI[i])        
     for i in range (10,10+len(tickers_Odd)):
         sTicker[i]=tickers_Odd[i-10]
         sSector[i]=sectors_Odd[i-10]
         sIndustry[i]=industries_Odd[i-10]
         sCurPrice[i]=float(prices_Odd[i-10])   
         sPriceChangePercent[i]=float(priceChangePct_Odd[i-10].replace("%",""))     
-        sBeta[i]=beta_Odd[i-10]
-        if(sBeta[i] != "-"):
-            sBeta[i]=float(sBeta[i])              
+        sRSI[i]=rsi_Odd[i-10]    
+        if (sRSI[i] != "-"):
+            sRSI[i] = float(sRSI[i])
     print 'sTicker =', sTicker
     
     #get all other data
@@ -279,7 +280,7 @@ def FinvizStockParse(web):
         #Stock Lib is a dictionary.  It is how we return all of the values from this function.  Keep in mind it does not have labels.
         #Returns as #{{ticker1: price1, priceChange1, priceChangePct1, beta1},{ticker2: price2,priceChange2, pricechangepct#2,beta#2}, {3....}... }
                     
-        stockLib[sTicker[i]] = [sCurPrice[i], sPriceChangePercent[i], sBeta[i], sSector[i], sIndustry[i]]
+        stockLib[sTicker[i]] = [sCurPrice[i], sPriceChangePercent[i], sRSI[i], sSector[i], sIndustry[i]]
     print stockLib
     return stockLib
 
@@ -440,14 +441,14 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
     sheet['A3'] = "Ticker"                  #column 1
     sheet['B3'] = "Price"                   #column 2
     sheet['C3'] = "Percent Change"          #column 4
-    sheet['D3'] = "Beta"    
+    sheet['D3'] = "Rsi"    
     sheet['E3'] = "Sector"
     sheet['F3'] = "Industry"    
     
     ticker_Col=1
     price_Col=2
     pctChange_Col=3
-    Beta_Col=4
+    Rsi_Col=4
     Sector_Col=5
     Industry_Col=6
     
@@ -470,7 +471,14 @@ def WriteTab_DailyStockList(wb, stockLib, curTime):
                 if (item >= 0):
                     sheet.cell(row=row_num,column=col_num).font = green
                 else:
-                    sheet.cell(row=row_num,column=col_num).font = red           
+                    sheet.cell(row=row_num,column=col_num).font = red        
+            if (col_num == Rsi_Col):
+                if (item <= 30):
+                    sheet.cell(row=row_num,column=col_num).font = green
+                elif (item >=70):
+                    sheet.cell(row=row_num,column=col_num).font = red    
+                else:
+                    sheet.cell(row=row_num,column=col_num).font = None                      
         row_num=row_num+1
     
 def WriteTab_CumulativeStockList(wb, stockLib, curTime):
@@ -488,7 +496,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     ticker_Col=1
     price_Col=2
     pctChange_Col=3
-    Beta_Col=4
+    Rsi_Col=4
     Sector_Col=5
     Industry_Col=6
     Date_Col=7
@@ -496,7 +504,7 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
     sheet1.cell(row=1,column=ticker_Col).value = "Ticker"                  #column 2
     sheet1.cell(row=1,column=price_Col).value = "Price"                   #column 3
     sheet1.cell(row=1,column=pctChange_Col).value = "Percent Change"          #column 5
-    sheet1.cell(row=1,column=Beta_Col).value  = "Beta" 
+    sheet1.cell(row=1,column=Rsi_Col).value  = "Rsi" 
     sheet1.cell(row=1,column=Sector_Col).value  = "Sector"
     sheet1.cell(row=1,column=Industry_Col).value  = "Industry"
     sheet1.cell(row=1,column=Date_Col).value  = "Date" 
@@ -532,10 +540,17 @@ def WriteTab_CumulativeStockList(wb, stockLib, curTime):
             sheet1.cell(row=row_num,column=col_num).value = item
             #col 2 is Price Change, col 3 is price change pct, col 6 is buy sell ratio
             if (col_num == pctChange_Col):
-                if (item >= 0):
+                if (float(item) >= 0):
                     sheet1.cell(row=row_num,column=col_num).font = green
                 else:
-                    sheet1.cell(row=row_num,column=col_num).font = red
+                    sheet1.cell(row=row_num,column=col_num).font = red                    
+            if (col_num == Rsi_Col):
+                if (item <= 30):
+                    sheet1.cell(row=row_num,column=col_num).font = green
+                elif (item >=70):
+                    sheet1.cell(row=row_num,column=col_num).font = red    
+                else:
+                    sheet1.cell(row=row_num,column=col_num).font = None  
         sheet1.cell(row=row_num,column=col_num+1).value = dateStr
         
 def writeTemplate_Price_MAs(sheet2, stockLib, curTime):
@@ -1069,8 +1084,8 @@ def main():
     print 'listName=',listName 
 
     #FinvizDict={}
-    finvizTree = GetFinviz_StockPage("ACCO")
-    FinvizDict = GetFinvizStockINFO_test(finvizTree)
+    #finvizTree = GetFinviz_StockPage("ACCO")
+    #FinvizDict = GetFinvizStockINFO_test(finvizTree)
     #beta,price = GetFinvizStockINFO_Price_Beta(finvizTree)
     #print 'beta= ', beta
     #print 'price= ', price
@@ -1088,14 +1103,14 @@ def main():
     stockLib = FinvizStockParse(web)
 #    stockLib = StockParse()
     
-    for key in stockLib.keys():
-        i=0
-        for item in stockLib[key]: 
-            if (i==stockLib_sBeta):
-                if (item > 5 and item != 'N/A'):
-                    stockLib.pop(key,None)
-                    print 'removing key: ', key
-            i=i+1
+#    for key in stockLib.keys():
+#        i=0
+#        for item in stockLib[key]: 
+#            if (i==stockLib_sBeta):
+#                if (item > 5 and item != 'N/A'):
+#                    stockLib.pop(key,None)
+#                    print 'removing key: ', key
+#            i=i+1
     print 'stockLib in MAIN ', stockLib    
     
     csvWriter(stockLib, listName)

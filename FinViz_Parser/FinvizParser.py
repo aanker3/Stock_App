@@ -136,7 +136,7 @@ def GetFinvizStockINFO(tree):
     stockInfo_11 = tree.xpath('//*[@class="table-dark-row"]/td[2]/b/text()') 
     dividendPct=stockInfo_11[7]
     FinvizInfoDict={}
-    FinvizInfoDict = {'Price': price, 'PriceChangePct':priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eqp_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct, 'profitMargin':profitMargin}
+    FinvizInfoDict = {'Price': price, 'PriceChangePct':priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eps_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct, 'profitMargin':profitMargin}
     print FinvizInfoDict
     return FinvizInfoDict
 
@@ -594,6 +594,13 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     profitMargin_ENUM=14
     eps_NextY_ENUM=15
     sales_QQ_ENUM=16
+    eps_qq_ENUM=17
+    epsPast5Y_ENUM=18
+    pe_ENUM=19
+    forwardPE_ENUM=20
+    ps_ENUM=21
+    p_FCF_ENUM=22
+    dividendPct_ENUM=23
     
     sheets = wb.sheetnames
     print 'sheets2: ' ,sheets
@@ -612,6 +619,13 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     sheet_profitMargin = wb[sheets[profitMargin_ENUM]]
     sheet_eps_NextY = wb[sheets[eps_NextY_ENUM]]
     sheet_sales_QQ = wb[sheets[sales_QQ_ENUM]] 
+    sheet_eps_qq=wb[sheets[eps_qq_ENUM]]
+    sheet_epsPast5Y=wb[sheets[epsPast5Y_ENUM]]
+    sheet_pe=wb[sheets[pe_ENUM]]
+    sheet_forwardPE=wb[sheets[forwardPE_ENUM]]
+    sheet_ps=wb[sheets[ps_ENUM]]
+    sheet_p_FCF=wb[sheets[p_FCF_ENUM]]
+    sheet_dividendPct=wb[sheets[dividendPct_ENUM]]
     
     currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)
     currentDate_Column_Beta = writeTemplate_Price_MAs(sheet_Beta, stockLib, curTime)
@@ -628,6 +642,13 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
     writeTemplate_Price_MAs(sheet_profitMargin, stockLib, curTime)
     writeTemplate_Price_MAs(sheet_eps_NextY, stockLib, curTime)
     writeTemplate_Price_MAs(sheet_sales_QQ, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_eps_qq, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_epsPast5Y, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_pe, stockLib, curTime)    
+    writeTemplate_Price_MAs(sheet_forwardPE, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_ps, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_p_FCF, stockLib, curTime)
+    writeTemplate_Price_MAs(sheet_dividendPct, stockLib, curTime)
     
     #make sure dates are the same!
     if((currentDate_Column_price == currentDate_Column_Beta) and (currentDate_Column_price == currentDate_Column_RSI14)):
@@ -659,7 +680,7 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             finvizTree = GetFinviz_StockPage(stockTicker)
             FinvizDict = GetFinvizStockINFO(finvizTree)
             print 'FinvizDict=', FinvizDict
-#    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'profitMargin':profitMargin, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eqp_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct}
+#    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'profitMargin':profitMargin, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eps_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct}
             
             #FIRST add in PRICE in form "190 (-.5%)"   
             print 'get!', FinvizDict.get('rsi_14')
@@ -722,7 +743,27 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
             
             #Sales QQ
             sheet_sales_QQ.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("sales_QQ")   
+
+            #eps_qq
+            sheet_eps_qq.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("eps_qq")   
+
+            #eps Past 5 Years
+            sheet_epsPast5Y.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("epsPast5Y")   
+
+            #PE
+            sheet_pe.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("pe")   
+
+            #Forware PE
+            sheet_forwardPE.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("forward_PE")   
             
+            #PS
+            sheet_ps.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("ps")   
+            
+            #p_FCF
+            sheet_p_FCF.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("p_FCF")   
+            
+            #dividend pct
+            sheet_dividendPct.cell(row=row_num,column=currentDate_column).value = FinvizDict.get("dividendPct")   
  
             #add to a dictionary.  Maybe will be useful? 
             cumulative_StockLib[stockTicker] = [float(FinvizDict.get("Price"))]
@@ -879,6 +920,7 @@ def WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime):
     
     sheet1.cell(row=1,column=col_num).value = "% Change Since Inception"
     
+    price_ENUM=0
     row_num = 1
     #column=1 is the tickers
     while (sheet1.cell(row=row_num,column=1).value != None):
@@ -886,7 +928,7 @@ def WriteTotalChangeSinceInception(wb, cumulative_StockLib, curTime):
             if (sheet1.cell(row=row_num,column=1).value == key):
                 i=0
                 for item in cumulative_StockLib[key]: 
-                    if (i==0):
+                    if (i==price_ENUM):
                         #print 'current price=', item
                         price_Change = item - sheet1.cell(row=row_num,column=2).value
                         pctChange = round(float(100*(price_Change/sheet1.cell(row=row_num,column=2).value)),2)

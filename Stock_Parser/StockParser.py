@@ -710,8 +710,8 @@ def WriteOverallStats(wb, cumulative_StockLib, curTime):
         total_pctChange=total_pctChange+sheet1.cell(row=row_num,column=totals_col).value
         row_num=row_num+1
         
-    sheet1['P7'] = "Total Sum:"
-    sheet1['Q7'] = str(total_pctChange) + "%"
+    sheet1.cell(row=7, column=16).value = "Total Sum:"
+    sheet1.cell(row=7, column=17).value =] = str(total_pctChange) + "%"
 
 def WriteFidelityStats(wb, cumulative_StockLib, curTime):
     sheets = wb.sheetnames
@@ -748,14 +748,14 @@ def WriteFidelityStats(wb, cumulative_StockLib, curTime):
             lower_30_pctChange=lower_30_pctChange+sheet1.cell(row=row_num,column=totals_col).value
         row_num=row_num+1
     
-    sheet1['P8'] = ".75+ Ratio"
-    sheet1['Q8'] = str(greater_75_pctChange) + "%"
+    sheet1.cell(row=8, column=16).value = ".75+ Ratio"
+    sheet1.cell(row=8, column=17).value = str(greater_75_pctChange) + "%"
     
-    sheet1['P9'] = ".35-.65 Ratio"
-    sheet1['Q9'] = str(btwn_35_65_pctChange) + "%"    
+    sheet1.cell(row=9, column=16).value ".35-.65 Ratio"
+    sheet1.cell(row=9, column=17).value = str(btwn_35_65_pctChange) + "%"    
         
-    sheet1['P10'] = ".30- Ratio"
-    sheet1['Q10'] = str(lower_30_pctChange) + "%"
+    sheet1.cell(row=10, column=16).value = ".30- Ratio"
+    sheet1.cell(row=10, column=17).value = str(lower_30_pctChange) + "%"
     
 def csvWriter(stockLib):
     curTime = datetime.datetime.now()

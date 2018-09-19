@@ -1,24 +1,21 @@
 set backupFilename=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%
 echo %backupFilename%
 
-cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_DoubleBot
-python Finviz_DoubleBot.py
-copy Finviz_DoubleBot.xlsx StockSheetBackups\Finviz_DoubleBot_%backupFilename%_PostRun.xlsx
-
-cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_TLSupport
-python Finviz_TLSupport.py
-copy Finviz_TLSupport.xlsx StockSheetBackups\Finviz_TLSupport_%backupFilename%_PostRun.xlsx
-
-cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_InsiderBuying_BuyPlus
-python Finviz_InsiderBuying_BuyPlus.py
-copy Finviz_InsiderBuying_BuyPlus.xlsx StockSheetBackups\Finviz_InsiderBuying_BuyPlus_%backupFilename%_PostRun.xlsx
-
-cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser\Finviz_ChannelUp
-python Finviz_ChannelUp.py
-copy Finviz_ChannelUp.xlsx StockSheetBackups\Finviz_ChannelUp_%backupFilename%_PostRun.xlsx
-
 cd C:\Users\aanker\Desktop\Stock_App\Stock_Parser
 python StockParser.py
 copy StockList.xlsx StockSheetBackups\StockList_%backupFilename%_PostRun.xlsx
+
+cd C:\Users\aanker\Desktop\Stock_App\FinViz_Parser
+python FinvizParser.py Finviz_TLSupport_Oversold40_InvHammer
+copy Finviz_TLSupport_Oversold40_InvHammer\Finviz_TLSupport_Oversold40_InvHammer.xlsx Finviz_TLSupport_Oversold40_InvHammer\StockSheetBackups\Finviz_TLSupport_Oversold40_InvHammer%backupFilename%_PostRun.xlsx
+
+python FinvizParser.py Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25
+copy Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25\Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25.xlsx Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25\StockSheetBackups\Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25%backupFilename%_PostRun.xlsx
+
+python FinvizParser.py Finviz_MajorNews
+copy Finviz_MajorNews\Finviz_MajorNews.xlsx Finviz_MajorNews\StockSheetBackups\Finviz_MajorNews%backupFilename%_PostRun.xlsx
+
+python FinvizParser.py Finviz_Upgrades
+copy Finviz_Upgrades\Finviz_Upgrades.xlsx Finviz_Upgrades\StockSheetBackups\Finviz_Upgrades%backupFilename%_PostRun.xlsx
 
 pause

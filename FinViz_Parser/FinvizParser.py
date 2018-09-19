@@ -1099,6 +1099,10 @@ def main():
         web = 'https://finviz.com/screener.ashx?v=152&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3&c=1,2,3,4,6,48,59,65,66,67'
     elif listName == 'Finviz_WedgeStrng_Oversold40_AvgtrueRngUndr25':
         web = 'https://finviz.com/screener.ashx?v=152&f=geo_usa,ind_stocksonly,ta_averagetruerange_u2.5,ta_pattern_wedge2,ta_rsi_os40&ft=3&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_MajorNews':
+        web = 'https://finviz.com/screener.ashx?v=152&s=n_majornews&f=geo_usa,ind_stocksonly&ft=3&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_Upgrades':
+        web = 'https://finviz.com/screener.ashx?v=152&s=n_upgrades&f=geo_usa,ind_stocksonly&ft=3&c=1,2,3,4,6,48,59,65,66,67'
     else:
         print 'could not find listName: ', listName
         #web='https://finviz.com/screener.ashx?v=150&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'

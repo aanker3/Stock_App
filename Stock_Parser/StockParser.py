@@ -711,7 +711,7 @@ def WriteOverallStats(wb, cumulative_StockLib, curTime):
         row_num=row_num+1
         
     sheet1.cell(row=7, column=16).value = "Total Sum:"
-    sheet1.cell(row=7, column=17).value =] = str(total_pctChange) + "%"
+    sheet1.cell(row=7, column=17).value = str(total_pctChange) + "%"
 
 def WriteFidelityStats(wb, cumulative_StockLib, curTime):
     sheets = wb.sheetnames
@@ -751,7 +751,7 @@ def WriteFidelityStats(wb, cumulative_StockLib, curTime):
     sheet1.cell(row=8, column=16).value = ".75+ Ratio"
     sheet1.cell(row=8, column=17).value = str(greater_75_pctChange) + "%"
     
-    sheet1.cell(row=9, column=16).value ".35-.65 Ratio"
+    sheet1.cell(row=9, column=16).value = ".35-.65 Ratio"
     sheet1.cell(row=9, column=17).value = str(btwn_35_65_pctChange) + "%"    
         
     sheet1.cell(row=10, column=16).value = ".30- Ratio"

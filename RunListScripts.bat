@@ -18,4 +18,7 @@ copy Finviz_MajorNews\Finviz_MajorNews.xlsx Finviz_MajorNews\StockSheetBackups\F
 python FinvizParser.py Finviz_Upgrades
 copy Finviz_Upgrades\Finviz_Upgrades.xlsx Finviz_Upgrades\StockSheetBackups\Finviz_Upgrades%backupFilename%_PostRun.xlsx
 
+python FinvizParser.py Finviz_TopGainers_PEless15
+copy Finviz_TopGainers_PEless15\Finviz_TopGainers_PEless15.xlsx Finviz_TopGainers_PEless15\StockSheetBackups\Finviz_TopGainers_PEless15%backupFilename%_PostRun.xlsx
+
 pause

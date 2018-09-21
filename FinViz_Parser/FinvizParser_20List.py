@@ -589,15 +589,14 @@ def writeTemplate_Price_MAs(sheet2, stockLib, curTime):
                 break
     return currentDate_Column
       
-def FinvizListSite(stockticker):
+def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
     print 'in FinvizListSite, stockticker=', stockticker
     FinvizListAddr='https://finviz.com/screener.ashx?v=152&t='
     for i in range(0,len(stockticker)):
         FinvizListAddr=FinvizListAddr+stockticker[i]
-        print 'i=',i
         if (i+1 != len(stockticker)):
             FinvizListAddr=FinvizListAddr+','
-    FinvizListAddr=FinvizListAddr+'&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,66,67,69'
+    FinvizListAddr=FinvizListAddr+'&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,65,66,67,69'
     
     print 'FinvizListAddr=',FinvizListAddr
 
@@ -610,32 +609,54 @@ def FinvizListSite(stockticker):
     pe_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[2]//text()') #gets odds    
     forwardPE_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[3]//text()') #gets odds
     forwardPE_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[3]//text()') #gets odds
+    ps_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[4]//text()') #gets odds
+    ps_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[4]//text()') #gets odds
+    pFCF_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[5]//text()') #gets odds
+    pFCF_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[5]//text()') #gets odds
+    dividendPct_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[6]//text()') #gets odds
+    dividendPct_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[6]//text()') #gets odds
+    epsNextY_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[7]//text()') #gets odds
+    epsNextY_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[7]//text()') #gets odds
     
     sTicker= ["1"] * 20
     sForwardPE = ["1"] * 20
     sPE = ["1"] *20
+    sPS = ["1"] *20
+    sPFCF = ["1"] *20
+    sDividendPct = ["1"] *20
+    sEpsNextY = ["1"] *20
     
     #do it twice for evens and odds
     for i in range (0,len(tickers_Even)):
         sTicker[i] = tickers_Even[i]
         sForwardPE[i] = forwardPE_Even[i]
         sPE[i] = pe_Even[i]
+        sPS[i] = ps_Even[i]
+        sPFCF[i] = pFCF_Even[i]
+        sDividendPct[i] = dividendPct_Even[i]
+        sEpsNextY[i] = epsNextY_Even[i]
     for i in range (len(tickers_Even),len(tickers_Even)+len(tickers_Odd)):
         sTicker[i]=tickers_Odd[i-len(tickers_Even)]
         sForwardPE[i]=forwardPE_Odd[i-len(tickers_Even)]
         sPE[i] = pe_Odd[i-len(tickers_Even)]
-    listOfStockDicts=[]
+        sPS[i] = ps_Odd[i-len(tickers_Even)]
+        sPFCF[i] = pFCF_Odd[i-len(tickers_Even)]
+        sDividendPct[i] = dividendPct_Odd[i-len(tickers_Even)]
+        sEpsNextY[i] = epsNextY_Odd[i-len(tickers_Even)]
+        
+    #listOfStockDicts=[]
         
     for i in range (len(tickers_Even)+len(tickers_Odd)):
-        listOfStockDicts.append({"ticker":sTicker[i], "PE":sPE[i], "ForwardPE":sForwardPE[i]})
+        listOfStockDicts.append({"ticker":sTicker[i], "pe":sPE[i], "forward_PE":sForwardPE[i], "ps":sPS[i], "p_FCF":sPFCF[i], 'dividendPct':sDividendPct[i], 'eps_NextY':sEpsNextY[i]})
+#    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'profitMargin':profitMargin, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eps_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct}
 
-    print 'listOfStockDicts=',listOfStockDicts
+
     
     for item in listOfStockDicts:
         print 'ticker extracted =', item.get("ticker")
     
-    print 'tickers_Even=',tickers_Even
-    print 'tickers_Odd=',tickers_Odd    
+    
+    #return listOfStockDicts
  #   stockticker[i]A,B,C&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,66,67,69'
       
 
@@ -648,24 +669,45 @@ def getFinvizStockListCUMULATIVE(wb):
     row_num=2
     ticker_col=1
     stockticker = []
-    stockDict={}
+    listOfStockDicts=[]
     while (sheet_Price.cell(row=row_num,column=ticker_col).value != None):
         #GET THE 20 STOCKS!
         stockticker.append(str(sheet_Price.cell(row=row_num,column=ticker_col).value))
         if (len(stockticker) == 10):
-            stockDict=FinvizListSite(stockticker)
+            stockDict=FinvizListSite(sheet_Price,stockticker, listOfStockDicts)
             stockticker = []
             
         row_num=row_num+1
         
+    print 'listOfStockDicts=',listOfStockDicts
+    
     if (len(stockticker) != 0):
-        stockDict=FinvizListSite(stockticker)
+        stockDict=FinvizListSite(stockticker,stockticker, listOfStockDicts)
         
+    return listOfStockDicts        
+"""
+    #currentDate_Column_price = writeTemplate_Price_MAs(sheet_Price, stockLib, curTime)        
+    row_num=2
+    ticker_col=1        
+    for item in listOfStockDicts:
+        row_num=2
+        while (sheet_Price.cell(row=row_num,column=ticker_col).value != None):
+            if (sheet_Price.cell(row=row_num,column=ticker_col).value == item.get("ticker")):
+                print 'found ticker', item.get("ticker"), 'in row', row_num
+                
+                sheet_Price.cell(row=row_num,column=7).value = item.get("ticker")
+                
+            row_num=row_num+1 
+"""
+
+
+
+
         
 #JUST VARS: https://finviz.com/screener.ashx?v=152&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,66,67,69
-#WITH STOCKS AND VARS: https://finviz.com/screener.ashx?v=152&t=A,B,C&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,66,67,69
+#WITH STOCKS AND VARS: https://finviz.com/screener.ashx?v=152&t=A,B,C&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,65,66,67,69
         
-    print 'stickticker array:', stockticker
+    #print 'stickticker array:', stockticker
 
 
 def WriteTabs_Price_MAs(wb, stockLib, curTime):
@@ -756,17 +798,44 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
         print 'currentDate_Column_RSI14 = ', currentDate_Column_RSI14
         
     cumulative_StockLib = {}
-    
+    listOfStockDicts = getFinvizStockListCUMULATIVE(wb)
     stock_col=1
     stockMatch=True
     #make sure stock lists are the same!
     row_num=2
+
+    row_num=2
+    ticker_col=1            
+    for item in listOfStockDicts:
+        row_num=2
+        while (sheet_Price.cell(row=row_num,column=ticker_col).value != None):
+            #match up the ticker from the dict with the excel
+            if (sheet_Price.cell(row=row_num,column=ticker_col).value == item.get("ticker")):
+                #make sure the tickers are the same
+                if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_Beta.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_RSI14.cell(row=row_num,column=stock_col).value)):
+                    #at this point, row_num is the exact row number that the stock ticker (matched) is on
+                    print 'found ticker', item.get("ticker"), 'in row', row_num
+                
+                    sheet_Price.cell(row=row_num,column=currentDate_column).value = item.get("ticker")
+                
+                    #add to a dictionary.  Maybe will be useful? 
+                    cumulative_StockLib[item.get("ticker")] = [2]#float(FinvizDict.get("Price"))]                    
+                
+            row_num=row_num+1
+                
+    return cumulative_StockLib
+            
+            #add to a dictionary.  Maybe will be useful? 
+            #cumulative_StockLib[stockTicker] = [float(FinvizDict.get("Price"))]    
+        
+    
+"""    
     while (sheet_Price.cell(row=row_num,column=stock_col).value != None):
         #print 'row_num= ', row_num
         if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_Beta.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_RSI14.cell(row=row_num,column=stock_col).value)):
             #cumulativeStockLib{stockticker:price, 50dayma,200dayma}          
             
-
+""
             stockTicker=str(sheet_Price.cell(row=row_num,column=stock_col).value)
             #Data from yahoo SATISTICS PAGE
             #treeYahoo = GetYahoo_StatisticsPage(stockTicker)     
@@ -873,8 +942,8 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
         print 'ERROR: stocks Dont Match!'
     
     print 'cumulative_StockLibrary: ',cumulative_StockLib
-    
-    return cumulative_StockLib
+"""    
+
     #check if stock exists
 #    for key in stockLib.keys():
 

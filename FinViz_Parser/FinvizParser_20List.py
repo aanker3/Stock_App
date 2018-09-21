@@ -617,6 +617,29 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
     dividendPct_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[6]//text()') #gets odds
     epsNextY_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[7]//text()') #gets odds
     epsNextY_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[7]//text()') #gets odds
+    epsPast5Y_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[8]//text()') #gets odds
+    epsPast5Y_Odd  = tree.xpath('//*[@class="table-light-row-cp"]/td[8]//text()') #gets odds
+    epsQQ_Even = tree.xpath('//*[@class="table-dark-row-cp"]/td[9]//text()') #gets odds
+    epsQQ_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[9]//text()') #gets odds
+    salesQQ_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[10]//text()') #gets odds
+    salesQQ_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[10]//text()') #gets odds
+    sharesOutstanding_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[11]//text()') #gets odds
+    sharesOutstanding_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[11]//text()') #gets odds
+    profitMargin_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[12]//text()') #gets odds
+    profitMargin_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[12]//text()') #gets odds    
+    beta_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[13]//text()') #gets odds
+    beta_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[13]//text()') #gets odds       
+    sma20_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[14]//text()') #gets odds
+    sma20_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[14]//text()') #gets odds   
+    sma50_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[15]//text()') #gets odds
+    sma50_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[15]//text()') #gets odds   
+    sma200_Even= tree.xpath('//*[@class="table-dark-row-cp"]/td[16]//text()') #gets odds
+    sma200_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[16]//text()') #gets odds   
+    high52W_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[17]//text()') #gets odds
+    high52W_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[17]//text()') #gets odds   
+    low52W_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[18]//text()') #gets odds
+    low52W_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[18]//text()') #gets odds   
+    
     
     sTicker= ["1"] * 20
     sForwardPE = ["1"] * 20
@@ -625,6 +648,17 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
     sPFCF = ["1"] *20
     sDividendPct = ["1"] *20
     sEpsNextY = ["1"] *20
+    sEpsPast5Y = ["1"] *20
+    sEpsQQ = ["1"] *20
+    sSalesQQ = ["1"] *20
+    sSharesOutstanding = ["1"] *20
+    sProfitMargin = ["1"] *20
+    sBeta = ["1"] *20
+    sSma20 = ["1"] *20 
+    sSma50 = ["1"] *20
+    sSma200 = ["1"] *20
+    sHigh52W = ["1"] *20
+    sLow52W = ["1"] *20
     
     #do it twice for evens and odds
     for i in range (0,len(tickers_Even)):
@@ -635,6 +669,17 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
         sPFCF[i] = pFCF_Even[i]
         sDividendPct[i] = dividendPct_Even[i]
         sEpsNextY[i] = epsNextY_Even[i]
+        sEpsPast5Y[i] = epsPast5Y_Even[i]
+        sEpsQQ[i] = epsQQ_Even[i]
+        sSalesQQ[i] = salesQQ_Even[i]
+        sSharesOutstanding[i] =sharesOutstanding_Even[i]
+        sProfitMargin[i] = profitMargin_Even[i]
+        sBeta[i] = beta_Even[i]
+        sSma20[i] =sma20_Even[i]
+        sSma50[i] =sma50_Even[i] 
+        sSma200[i] = sma200_Even[i]
+        sHigh52W[i] = high52W_Even[i]
+        sLow52W[i] = low52W_Even[i]
     for i in range (len(tickers_Even),len(tickers_Even)+len(tickers_Odd)):
         sTicker[i]=tickers_Odd[i-len(tickers_Even)]
         sForwardPE[i]=forwardPE_Odd[i-len(tickers_Even)]
@@ -643,11 +688,21 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
         sPFCF[i] = pFCF_Odd[i-len(tickers_Even)]
         sDividendPct[i] = dividendPct_Odd[i-len(tickers_Even)]
         sEpsNextY[i] = epsNextY_Odd[i-len(tickers_Even)]
-        
+        sEpsPast5Y[i] = epsPast5Y_Odd[i-len(tickers_Even)]
+        sEpsQQ[i] = epsQQ_Odd[i-len(tickers_Even)]
+        sSalesQQ[i] = salesQQ_Odd[i-len(tickers_Even)]
+        sSharesOutstanding[i] = sharesOutstanding_Odd[i-len(tickers_Even)]
+        sProfitMargin[i] = profitMargin_Odd[i-len(tickers_Even)]
+        sBeta[i] = beta_Odd[i-len(tickers_Even)]
+        sSma20[i] =sma20_Odd[i-len(tickers_Even)]
+        sSma50[i] =sma50_Odd[i-len(tickers_Even)]
+        sSma200[i] =sma200_Odd[i-len(tickers_Even)]         
+        sHigh52W[i] = high52W_Odd[i-len(tickers_Even)]   
+        sLow52W[i] = low52W_Odd[i-len(tickers_Even)]   
     #listOfStockDicts=[]
         
     for i in range (len(tickers_Even)+len(tickers_Odd)):
-        listOfStockDicts.append({"ticker":sTicker[i], "pe":sPE[i], "forward_PE":sForwardPE[i], "ps":sPS[i], "p_FCF":sPFCF[i], 'dividendPct':sDividendPct[i], 'eps_NextY':sEpsNextY[i]})
+        listOfStockDicts.append({"ticker":sTicker[i], "pe":sPE[i], "forward_PE":sForwardPE[i], "ps":sPS[i], "p_FCF":sPFCF[i], 'dividendPct':sDividendPct[i], 'eps_NextY':sEpsNextY[i], 'epsPast5Y':sEpsPast5Y[i], 'eps_qq':sEpsQQ[i], 'sales_QQ':sSalesQQ[i], 'shares_Outstanding':sSharesOutstanding[i], 'profitMargin':sProfitMargin[i], 'beta':sBeta[i], 'sma_20':sSma20[i], 'sma_50':sSma50[i], 'sma_200':sSma200[i], 'high_52':sHigh52W, 'low_52':sLow52W })
 #    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'profitMargin':profitMargin, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eps_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct}
 
 
@@ -657,7 +712,7 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
     
     
     #return listOfStockDicts
- #   stockticker[i]A,B,C&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,66,67,69'
+ #   stockticker[i]A,B,C&c=1,7,8,10,13,14,18,19,22,23,24,41,48,52,53,54,57,58,59,63,65,66,67,69'
       
 
 def getFinvizStockListCUMULATIVE(wb):
@@ -674,7 +729,7 @@ def getFinvizStockListCUMULATIVE(wb):
         #GET THE 20 STOCKS!
         stockticker.append(str(sheet_Price.cell(row=row_num,column=ticker_col).value))
         if (len(stockticker) == 10):
-            stockDict=FinvizListSite(sheet_Price,stockticker, listOfStockDicts)
+            FinvizListSite(sheet_Price,stockticker, listOfStockDicts)
             stockticker = []
             
         row_num=row_num+1
@@ -682,7 +737,7 @@ def getFinvizStockListCUMULATIVE(wb):
     print 'listOfStockDicts=',listOfStockDicts
     
     if (len(stockticker) != 0):
-        stockDict=FinvizListSite(stockticker,stockticker, listOfStockDicts)
+        FinvizListSite(stockticker,stockticker, listOfStockDicts)
         
     return listOfStockDicts        
 """

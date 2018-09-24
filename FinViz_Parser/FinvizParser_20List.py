@@ -639,7 +639,19 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
     high52W_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[17]//text()') #gets odds   
     low52W_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[18]//text()') #gets odds
     low52W_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[18]//text()') #gets odds   
-    
+    rsi_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[19]//text()') #gets odds
+    rsi_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[19]//text()') #gets odds     
+    avgVol_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[20]//text()') #gets odds
+    avgVol_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[20]//text()') #gets odds         
+    price_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[21]//text()') #gets odds
+    price_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[21]//text()') #gets odds     
+    priceChangePct_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[22]//text()') #gets odds
+    priceChangePct_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[22]//text()') #gets odds       
+    volume_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[23]//text()') #gets odds
+    volume_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[23]//text()') #gets odds     
+    targetPrice_Even =tree.xpath('//*[@class="table-dark-row-cp"]/td[24]//text()') #gets odds
+    targetPrice_Odd = tree.xpath('//*[@class="table-light-row-cp"]/td[24]//text()') #gets odds      
+
     
     sTicker= ["1"] * 20
     sForwardPE = ["1"] * 20
@@ -659,6 +671,12 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
     sSma200 = ["1"] *20
     sHigh52W = ["1"] *20
     sLow52W = ["1"] *20
+    sRsi = ["1"] *20
+    sAvgVol = ["1"] *20
+    sPrice = ["1"] *20
+    sPriceChangePct = ["1"] *20
+    sVolume = ["1"] *20
+    sTargetPrice = ["1"] *20
     
     #do it twice for evens and odds
     for i in range (0,len(tickers_Even)):
@@ -680,6 +698,15 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
         sSma200[i] = sma200_Even[i]
         sHigh52W[i] = high52W_Even[i]
         sLow52W[i] = low52W_Even[i]
+        sRsi[i] = rsi_Even[i]
+        sAvgVol[i] = avgVol_Even[i]
+        sPrice[i] =price_Even[i]
+        
+        sPriceChangePct[i] =priceChangePct_Even[i]
+        sPriceChangePct[i]=sPriceChangePct[i].replace("%","")
+        
+        sVolume[i] = volume_Even[i]
+        sTargetPrice[i] = targetPrice_Even[i]
     for i in range (len(tickers_Even),len(tickers_Even)+len(tickers_Odd)):
         sTicker[i]=tickers_Odd[i-len(tickers_Even)]
         sForwardPE[i]=forwardPE_Odd[i-len(tickers_Even)]
@@ -699,10 +726,19 @@ def FinvizListSite(sheet_Price, stockticker, listOfStockDicts):
         sSma200[i] =sma200_Odd[i-len(tickers_Even)]         
         sHigh52W[i] = high52W_Odd[i-len(tickers_Even)]   
         sLow52W[i] = low52W_Odd[i-len(tickers_Even)]   
+        sRsi[i] = rsi_Odd[i-len(tickers_Even)]   
+        sAvgVol[i] =avgVol_Odd[i-len(tickers_Even)]   
+        sPrice[i] =price_Odd[i-len(tickers_Even)]   
+        
+        sPriceChangePct[i] =priceChangePct_Odd[i-len(tickers_Even)]  
+        sPriceChangePct[i]=sPriceChangePct[i].replace("%","")
+        
+        sVolume[i] = volume_Odd[i-len(tickers_Even)]  
+        sTargetPrice[i] = targetPrice_Odd[i-len(tickers_Even)]  
     #listOfStockDicts=[]
         
-    for i in range (len(tickers_Even)+len(tickers_Odd)):
-        listOfStockDicts.append({"ticker":sTicker[i], "pe":sPE[i], "forward_PE":sForwardPE[i], "ps":sPS[i], "p_FCF":sPFCF[i], 'dividendPct':sDividendPct[i], 'eps_NextY':sEpsNextY[i], 'epsPast5Y':sEpsPast5Y[i], 'eps_qq':sEpsQQ[i], 'sales_QQ':sSalesQQ[i], 'shares_Outstanding':sSharesOutstanding[i], 'profitMargin':sProfitMargin[i], 'beta':sBeta[i], 'sma_20':sSma20[i], 'sma_50':sSma50[i], 'sma_200':sSma200[i], 'high_52':sHigh52W, 'low_52':sLow52W })
+    for i in range (0, len(tickers_Even)+len(tickers_Odd)):
+        listOfStockDicts.append({"ticker":sTicker[i], "pe":sPE[i], "forward_PE":sForwardPE[i], "ps":sPS[i], "p_FCF":sPFCF[i], 'dividendPct':sDividendPct[i], 'eps_NextY':sEpsNextY[i], 'epsPast5Y':sEpsPast5Y[i], 'eps_qq':sEpsQQ[i], 'sales_QQ':sSalesQQ[i], 'shares_Outstanding':sSharesOutstanding[i], 'profitMargin':sProfitMargin[i], 'beta':sBeta[i], 'sma_20':sSma20[i], 'sma_50':sSma50[i], 'sma_200':sSma200[i], 'high_52':sHigh52W[i], 'low_52':sLow52W[i], 'rsi_14':sRsi[i], 'avgVol':sAvgVol[i], 'Price':sPrice[i], 'PriceChangePct':sPriceChangePct[i], 'volume':sVolume[i], 'targetPrice':sTargetPrice[i]})
 #    FinvizInfoDict = {'Price': price, 'PriceChangePct': priceChangePct, 'beta': beta,'rsi_14':rsi_14, 'shares_Outstanding':sharesOutstand,  'avgVol':avgVol, 'volume':volume, 'targetPrice':targetPrice, 'high_52':high_52, 'low_52':low_52, 'sma_200':sma_200, 'profitMargin':profitMargin, 'eps_NextY':eps_NextY, 'sales_QQ':sales_QQ, 'eps_qq':eps_QQ, 'epsPast5Y':epsPast5Y, 'sma_50':sma_50, 'pe':pe, 'forward_PE':forward_PE,    'ps':ps, 'p_FCF':p_FCF, 'sma_20':sma_20, 'dividendPct':dividendPct}
 
 
@@ -870,11 +906,89 @@ def WriteTabs_Price_MAs(wb, stockLib, curTime):
                 if ((sheet_Price.cell(row=row_num,column=stock_col).value == sheet_Beta.cell(row=row_num,column=stock_col).value) and  (sheet_Price.cell(row=row_num,column=stock_col).value == sheet_RSI14.cell(row=row_num,column=stock_col).value)):
                     #at this point, row_num is the exact row number that the stock ticker (matched) is on
                     print 'found ticker', item.get("ticker"), 'in row', row_num
-                
-                    sheet_Price.cell(row=row_num,column=currentDate_column).value = item.get("ticker")
-                
+        #listOfStockDicts.append({"ticker":sTicker[i], "pe":sPE[i], "forward_PE":sForwardPE[i], "ps":sPS[i], "p_FCF":sPFCF[i], 'dividendPct':sDividendPct[i], 'eps_NextY':sEpsNextY[i], 'epsPast5Y':sEpsPast5Y[i], 'eps_qq':sEpsQQ[i], 'sales_QQ':sSalesQQ[i], 'shares_Outstanding':sSharesOutstanding[i], 'profitMargin':sProfitMargin[i], 'beta':sBeta[i], 'sma_20':sSma20[i], 'sma_50':sSma50[i], 'sma_200':sSma200[i], 'high_52':sHigh52W[i], 'low_52':sLow52W[i], 'rsi_14':sRsi[i], 'avgVol':sAvgVol[i], 'Price':sPrice[i], 'PriceChangePct':sPriceChangePct[i], 'volume':sVolume, 'targetPrice':sTargetPrice})
+           
+                    #add in Price
+                    stockPriceTemplate = str(item.get("Price")) + " (" + str(item.get("PriceChangePct")) + "%)"
+                    sheet_Price.cell(row=row_num,column=currentDate_column).value = stockPriceTemplate
+                    if (float(item.get("PriceChangePct")) >= 0):
+                        sheet_Price.cell(row=row_num,column=currentDate_column).font = green
+                    else:
+                        sheet_Price.cell(row=row_num,column=currentDate_column).font = red
+
+                    #Second Add in BETA
+                    sheet_Beta.cell(row=row_num,column=currentDate_column).value = item.get("beta")
+                    #third Add in RSI 14
+                    sheet_RSI14.cell(row=row_num,column=currentDate_column).value = float(item.get("rsi_14"))
+
+                    #Add color if over /under moving averages
+                    if(float(item.get("rsi_14")) < 30 ):
+                        sheet_RSI14.cell(row=row_num,column=currentDate_column).font = green
+                    elif(float(item.get("rsi_14")) > 70):
+                        sheet_RSI14.cell(row=row_num,column=currentDate_column).font = red
+                    else:
+                        sheet_RSI14.cell(row=row_num,column=currentDate_column).font = None
+                        
+                                   
+                    #add in SharesOutstanding
+                    sheet_SharesOutstanding.cell(row=row_num,column=currentDate_column).value = item.get("shares_Outstanding")
+
+                    #add in AvgVolume
+                    sheet_AvgVolume.cell(row=row_num,column=currentDate_column).value = item.get("avgVol")
+                    
+                    #add in Volume
+                    sheet_Volume.cell(row=row_num,column=currentDate_column).value = item.get("volume")            
+                    
+                    #add in target price
+                    sheet_TargetPrice.cell(row=row_num,column=currentDate_column).value = item.get("targetPrice")    
+                    
+                    #add in Dist from 52 week high
+                    sheet_High52W.cell(row=row_num,column=currentDate_column).value = item.get("high_52")   
+                    
+                    #add in dist from 52W Low
+                    sheet_Low52W.cell(row=row_num,column=currentDate_column).value = item.get("low_52")   
+            
+                    #add in dist from sma20
+                    sheet_Sma20.cell(row=row_num,column=currentDate_column).value = item.get("sma_20")       
+         
+                    #add in dist from sma50
+                    sheet_Sma50.cell(row=row_num,column=currentDate_column).value = item.get("sma_50")     
+                    
+                    #add in dist from sma200
+                    sheet_Sma200.cell(row=row_num,column=currentDate_column).value = item.get("sma_200")     
+
+                    #add in profit margin
+                    sheet_profitMargin.cell(row=row_num,column=currentDate_column).value = item.get("profitMargin")   
+                    
+                    #eps next Y
+                    sheet_eps_NextY.cell(row=row_num,column=currentDate_column).value = item.get("eps_NextY")   
+                    
+                    #Sales QQ
+                    sheet_sales_QQ.cell(row=row_num,column=currentDate_column).value = item.get("sales_QQ")   
+
+                    #eps_qq
+                    sheet_eps_qq.cell(row=row_num,column=currentDate_column).value = item.get("eps_qq")   
+
+                    #eps Past 5 Years
+                    sheet_epsPast5Y.cell(row=row_num,column=currentDate_column).value = item.get("epsPast5Y")   
+
+                    #PE
+                    sheet_pe.cell(row=row_num,column=currentDate_column).value = item.get("pe")   
+
+                    #Forware PE
+                    sheet_forwardPE.cell(row=row_num,column=currentDate_column).value = item.get("forward_PE")   
+                    
+                    #PS
+                    sheet_ps.cell(row=row_num,column=currentDate_column).value = item.get("ps")   
+                    
+                    #p_FCF
+                    sheet_p_FCF.cell(row=row_num,column=currentDate_column).value = item.get("p_FCF")   
+                    
+                    #dividend pct
+                    sheet_dividendPct.cell(row=row_num,column=currentDate_column).value = item.get("dividendPct")   
+                    
                     #add to a dictionary.  Maybe will be useful? 
-                    cumulative_StockLib[item.get("ticker")] = [2]#float(FinvizDict.get("Price"))]                    
+                    cumulative_StockLib[item.get("ticker")] = [float(item.get("Price"))]                    
                 
             row_num=row_num+1
                 

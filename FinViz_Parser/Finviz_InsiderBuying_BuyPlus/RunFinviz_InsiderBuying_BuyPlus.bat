@@ -1,3 +1,0 @@
-cd C:\Users\aanker\Desktop\Stock_App\Finviz_Parser\Finviz_InsiderBuying_BuyPlus
-python Finviz_InsiderBuying_BuyPlus.py
-pause

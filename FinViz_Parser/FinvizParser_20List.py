@@ -764,7 +764,7 @@ def getFinvizStockListCUMULATIVE(wb):
     while (sheet_Price.cell(row=row_num,column=ticker_col).value != None):
         #GET THE 20 STOCKS!
         stockticker.append(str(sheet_Price.cell(row=row_num,column=ticker_col).value))
-        if (len(stockticker) == 10):
+        if (len(stockticker) == 15):
             FinvizListSite(sheet_Price,stockticker, listOfStockDicts)
             stockticker = []
             
@@ -1426,6 +1426,14 @@ def main():
         web = 'https://finviz.com/screener.ashx?v=152&s=n_upgrades&f=geo_usa,ind_stocksonly&ft=3&c=1,2,3,4,6,48,59,65,66,67'
     elif listName == 'Finviz_TopGainers_PEless15':
         web = 'https://finviz.com/screener.ashx?v=152&s=ta_topgainers&f=fa_fpe_low,geo_usa,ind_stocksonly&ft=4&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_Sma20Bounce':
+        web = 'https://finviz.com/screener.ashx?v=152&f=sh_avgvol_o2000,sh_curvol_o2000,sh_price_10to50,sh_relvol_o1,ta_sma20_pa,ta_sma50_pb&ft=4&o=industry&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_OversoldEarningsMo':
+        web = 'https://finviz.com/screener.ashx?v=152&f=cap_smallover,earningsdate_thismonth,fa_epsqoq_o15,fa_grossmargin_o20,sh_avgvol_o750,sh_curvol_o1000,ta_perf_52w10o,ta_rsi_nob50&ft=4&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_Rsi30Reversal':
+        web = 'https://finviz.com/screener.ashx?v=152&f=sh_price_o5,sh_relvol_o2,ta_change_u,ta_rsi_os30&ft=4&o=price&c=1,2,3,4,6,48,59,65,66,67'
+    elif listName == 'Finviz_SmallCap_InstutionalTrans50Pct_30-45RSI_30SalesGrwth':
+        web = 'https://finviz.com/screener.ashx?v=152&f=cap_small,fa_salesqoq_o30,sh_insttrans_o50,ta_rsi_30to45&ft=4&c=1,2,3,4,6,48,59,65,66,67' #https://www.guerillastocktrading.com/lessons/finviz-stock-screener-killer-setups/
     else:
         print 'could not find listName: ', listName
         #web='https://finviz.com/screener.ashx?v=150&f=geo_usa,ind_stocksonly,ta_candlestick_ih,ta_pattern_tlsupport,ta_rsi_os40&ft=3'
